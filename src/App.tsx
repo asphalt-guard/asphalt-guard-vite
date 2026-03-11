@@ -29,12 +29,18 @@ function App() {
 		formData.append("file", image)
 
 		try {
-			const response = await fetch("http://192.168.254.107:7860/detect", {
-				method: "POST",
-				body: formData,
-			})
+			const response = await fetch(
+				"https://asphaltguard-pothole.hf.space/detect",
+				{
+					method: "POST",
+					body: formData,
+				},
+			)
 
-			if (!response.ok) throw new Error("Scan failed")
+			if (!response.ok) {
+				alert("Scan failed")
+				throw new Error("Scan failed")
+			}
 
 			// 1. Get the response as a Blob (the processed image)
 			const imageBlob = await response.blob()
