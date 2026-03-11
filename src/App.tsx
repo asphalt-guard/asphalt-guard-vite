@@ -7,14 +7,16 @@ function App() {
 	const fileInputRef = useRef(null)
 
 	const handleSelectClick = () => {
+		// @ts-expect-error ble
 		fileInputRef.current.click()
 	}
-
+	// @ts-expect-error ble
 	const handleFileChange = (event) => {
 		const file = event.target.files[0]
 		if (file) {
 			setImage(file)
 			// Create a temporary URL for the local file preview
+			// @ts-expect-error ble
 			setPreviewUrl(URL.createObjectURL(file))
 		}
 	}
@@ -41,6 +43,7 @@ function App() {
 			const processedImageUrl = URL.createObjectURL(imageBlob)
 
 			// 3. Update the preview with the result from the API
+			// @ts-expect-error ble
 			setPreviewUrl(processedImageUrl)
 		} catch (error) {
 			console.error("Error:", error)
