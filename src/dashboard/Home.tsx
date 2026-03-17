@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { getUserByUID, logOut, supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
 
