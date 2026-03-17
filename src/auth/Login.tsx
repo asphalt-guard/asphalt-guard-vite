@@ -1,0 +1,104 @@
+import { LogInIcon } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { logIn, supabase } from "../lib/supabase"
+
+function Login() {
+	const navigate = useNavigate()
+
+	const [loading, setLoading] = useState(false)
+
+	const [credentials, setCredentials] = useState({ email: "", password: "" })
+
+	const handleChangeForm = (e) => {
+		const { name, value } = e.target
+		setCredentials((prev) => ({
+			...prev,
+			[name]: value,
+		}))
+	}
+
+	const handleLogin = async () => {
+		setLoading(true)
+		if (await logIn(credentials)) {
+			navigate("/dashboard")
+		} else {
+			setLoading(false)
+		}
+	}
+
+	useEffect(() => {
+		const initAuth = async () => {
+			const {
+				data: { session },
+			} = await supabase.auth.getSession()
+
+			if (session) navigate("/dashboard")
+		}
+
+		initAuth()
+	}, [])
+
+	return (
+		<div className="flex min-h-screen font-sans bg-gray-50 flex-col">
+			<div className="flex justify-between items-center p-5 border-b border-b-[#cccccc] shadow">
+				<p>AsphaltGuard</p>
+				<Link to="/signup" className="underline">
+					Create Account
+				</Link>
+			</div>
+			<div className="flex flex-1 justify-center items-center p-2.5">
+				<div className="flex flex-col justify-center items-center gap-5 border border-[#cccccc] p-10 rounded-[10px] shadow-2xl">
+					<div className="p-2.5 border border-[#CCCCCC] rounded">
+						<LogInIcon />
+					</div>
+					<div className="flex flex-col justify-center items-center">
+						<p className="text-2xl">Login with email</p>
+						<p className="text-gray-600 text-center">
+							Only admins can access important data
+						</p>
+					</div>
+					<div className="flex flex-col justify-center items-center gap-2.5 w-full">
+						<input
+							type="text"
+							name="email"
+							value={credentials.email}
+							onChange={handleChangeForm}
+							placeholder="📧 Email"
+							className="border border-[#cccccc] rounded-[10px] p-2.5 w-full"
+						/>
+						<input
+							type="password"
+							name="password"
+							value={credentials.password}
+							onChange={handleChangeForm}
+							placeholder="🔒 Password"
+							className="border border-[#cccccc] rounded-[10px] p-2.5 w-full"
+						/>
+						<Link
+							to="/signup"
+							className="text-[0.7rem] text-right w-full underline text-gray-600"
+						>
+							Forgot Password?
+						</Link>
+					</div>
+					<div className="border-b border-b-[#cccccc] w-full"></div>
+
+					<button
+						onClick={handleLogin}
+						className="p-2.5 bg-black rounded-[10px] cursor-pointer w-full hover:bg-white text-white hover:text-black border"
+					>
+						<p className="">Continue</p>
+					</button>
+				</div>
+			</div>
+			{loading && (
+				<div className="fixed inset-0 flex items-center justify-center bg-white/30 backdrop-blur-[2px] z-50">
+					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+				</div>
+			)}
+		</div>
+	)
+}
+
+export default Login
