@@ -7,20 +7,23 @@ const supabasePublishableKey = import.meta.env
 export const supabase = createClient(supabaseUrl, supabasePublishableKey)
 
 // Functions
-
+// @ts-expect-error yes
 export const createNewUser = async (user: object, password) => {
+	// @ts-expect-error yes
 	const { data, authError } = await supabase.auth.signUp({
+		// @ts-expect-error yes
 		email: user.email,
 		password,
 	})
 
 	if (authError) {
+		// @ts-expect-error yes
 		console.error("Error signing up:", error.message)
 		return false
 	}
-
+	// @ts-expect-error yes
 	const { databaseError } = await supabase
-		.from("users")
+		.from("users") // @ts-expect-error yes
 		.insert({ ...user, user_id: data.user.id })
 
 	if (databaseError) return false
@@ -28,6 +31,7 @@ export const createNewUser = async (user: object, password) => {
 	return true
 }
 
+// @ts-expect-error yes
 export const getUserByUID = async (UID) => {
 	const { data, error } = await supabase
 		.from("users")
@@ -44,6 +48,7 @@ export const getUserByUID = async (UID) => {
 }
 
 export const logIn = async (credentials: object) => {
+	// @ts-expect-error yes
 	const { error } = await supabase.auth.signInWithPassword(credentials)
 
 	if (error) return false

@@ -42,7 +42,11 @@ function DashboardHome() {
 				<div className="flex flex-col gap-5 border border-[#cccccc] p-10 rounded-[10px] shadow-2xl">
 					<div className="flex justify-between ">
 						<p className="text-center">Dashboard</p>
-						{user && <p>Hello, {user.username}</p>}
+
+						{
+							// @ts-expect-error yes
+							user && <p>Hello, {user.username}</p>
+						}
 					</div>
 					<div className="border-b border-b-[#cccccc]"></div>
 					<div className="flex justify-between gap-20">

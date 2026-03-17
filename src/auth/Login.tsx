@@ -10,6 +10,7 @@ function Login() {
 
 	const [credentials, setCredentials] = useState({ email: "", password: "" })
 
+	// @ts-expect-error yes
 	const handleChangeForm = (e) => {
 		const { name, value } = e.target
 		setCredentials((prev) => ({

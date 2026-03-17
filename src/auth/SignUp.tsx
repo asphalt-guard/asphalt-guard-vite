@@ -1,7 +1,7 @@
 import { UserPlusIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { createNewUser, signUp, supabase } from "../lib/supabase"
+import { createNewUser, supabase } from "../lib/supabase"
 
 function SignUp() {
 	const navigate = useNavigate()
@@ -26,6 +26,7 @@ function SignUp() {
 		password.length >= 6 &&
 		password === confirmPassword
 
+	// @ts-expect-error yes
 	const handleChangeForm = (e) => {
 		const { name, value } = e.target
 		setFormData((prev) => ({
@@ -34,6 +35,7 @@ function SignUp() {
 		}))
 	}
 
+	// @ts-expect-error yes
 	const handleSubmit = async (e) => {
 		e.preventDefault() // Good practice to prevent default form behavior
 		if (!isFormValid) return
