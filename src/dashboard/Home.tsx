@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { getUserByUID, logOut, supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
+import { TrafficConeIcon } from "lucide-react"
 
 function DashboardHome() {
 	const navigate = useNavigate()
@@ -35,8 +36,11 @@ function DashboardHome() {
 	return (
 		<div className="flex min-h-screen font-sans bg-gray-50 flex-col">
 			<div className="flex justify-between items-center p-5 border-b border-b-[#cccccc] shadow bg-white">
-				<p className="font-bold">AsphaltGuard</p>
-				<p className="text-sm">Dashboard</p>
+				<div className="flex gap-2.5">
+					<TrafficConeIcon />
+					<p className="font-bold">AsphaltGuard</p>
+				</div>
+				<p>Dashboard</p>
 			</div>
 			<div className="flex flex-1 justify-center items-center p-2.5">
 				<div className="flex flex-col gap-5 border border-[#cccccc] p-10 rounded-[10px] shadow-2xl">

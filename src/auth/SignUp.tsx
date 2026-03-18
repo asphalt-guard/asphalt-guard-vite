@@ -77,7 +77,7 @@ function SignUp() {
 					</div>
 					<div className="flex flex-col justify-center items-center">
 						<h1 className="text-2xl font-semibold">Create new account</h1>
-						<p className="text-gray-600 text-center text-sm">
+						<p className="text-gray-600 text-center">
 							Admins will need to verify your identity later
 						</p>
 					</div>

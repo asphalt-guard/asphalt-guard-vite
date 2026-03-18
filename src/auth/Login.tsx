@@ -6,7 +6,8 @@ import { logIn, supabase } from "../lib/supabase"
 function Login() {
 	const navigate = useNavigate()
 
-	const [loading, setLoading] = useState(false)
+	const [loading, setLoading] = useState(true)
+	const [message, setMessage] = useState("")
 
 	const [credentials, setCredentials] = useState({ email: "", password: "" })
 
@@ -20,11 +21,13 @@ function Login() {
 	}
 
 	const handleLogin = async () => {
+		setMessage("")
 		setLoading(true)
 		if (await logIn(credentials)) {
 			navigate("/dashboard")
 		} else {
 			setLoading(false)
+			setMessage("Username or password is wrong")
 		}
 	}
 
@@ -35,6 +38,8 @@ function Login() {
 			} = await supabase.auth.getSession()
 
 			if (session) navigate("/dashboard")
+
+			setLoading(false)
 		}
 
 		initAuth()
@@ -76,12 +81,15 @@ function Login() {
 							placeholder="🔒 Password"
 							className="border border-[#cccccc] rounded-[10px] p-2.5 w-full"
 						/>
-						<Link
-							to="/signup"
-							className="text-[0.7rem] text-right w-full underline text-gray-600"
-						>
-							Forgot Password?
-						</Link>
+						<div className="flex justify-between w-full">
+							<p className="text-[0.7rem] text-[red]">{message}</p>
+							<Link
+								to="/signup"
+								className="text-[0.7rem] underline text-gray-600"
+							>
+								Forgot Password?
+							</Link>
+						</div>
 					</div>
 					<div className="border-b border-b-[#cccccc] w-full"></div>
 
