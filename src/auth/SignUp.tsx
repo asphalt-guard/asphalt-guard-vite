@@ -1,4 +1,4 @@
-import { UserPlusIcon } from "lucide-react"
+import { TrafficConeIcon, UserPlusIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { createNewUser, supabase } from "../lib/supabase"
@@ -64,7 +64,10 @@ function SignUp() {
 	return (
 		<div className="flex min-h-screen font-sans bg-gray-50 flex-col">
 			<div className="flex justify-between items-center p-5 border-b border-b-[#cccccc] shadow bg-white">
-				<p className="font-bold">AsphaltGuard</p>
+				<div className="flex gap-2.5">
+					<TrafficConeIcon />
+					<p>AsphaltGuard</p>
+				</div>
 				<Link to="/login" className="underline text-sm">
 					Login
 				</Link>

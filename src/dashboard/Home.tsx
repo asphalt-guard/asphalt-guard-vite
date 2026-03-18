@@ -38,7 +38,7 @@ function DashboardHome() {
 			<div className="flex justify-between items-center p-5 border-b border-b-[#cccccc] shadow bg-white">
 				<div className="flex gap-2.5">
 					<TrafficConeIcon />
-					<p className="font-bold">AsphaltGuard</p>
+					<p>AsphaltGuard</p>
 				</div>
 				<p>Dashboard</p>
 			</div>
