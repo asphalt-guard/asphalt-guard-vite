@@ -3,6 +3,7 @@ import YOLO26 from "./demo/YOLO26"
 import Login from "./auth/Login"
 import SignUp from "./auth/SignUp"
 import DashboardHome from "./dashboard/Home"
+import DashboardScanHistory from "./dashboard/ScanHistory"
 
 function App() {
 	return (
@@ -12,6 +13,7 @@ function App() {
 			<Route path="/login" element={<Login />} />
 			<Route path="/signup" element={<SignUp />} />
 			<Route path="/dashboard" element={<DashboardHome />} />
+			<Route path="/dashboard/scanhistory" element={<DashboardScanHistory />} />
 		</Routes>
 	)
 }

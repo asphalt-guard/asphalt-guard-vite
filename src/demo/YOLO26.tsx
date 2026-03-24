@@ -1,10 +1,13 @@
 import { useState, useRef } from "react"
+import { supabase } from "../lib/supabase"
 
 function YOLO26() {
 	const [image, setImage] = useState(null)
 	const [previewUrl, setPreviewUrl] = useState(null) // Separate state for the display URL
 	const [isLoading, setIsLoading] = useState(false)
 	const fileInputRef = useRef(null)
+	// @ts-expect-error yes
+	const [detectionCount, setDetectionCount] = useState(null)
 
 	const handleSelectClick = () => {
 		// @ts-expect-error ble
@@ -29,6 +32,7 @@ function YOLO26() {
 		formData.append("file", image)
 
 		try {
+			// 1. Get detection results from your API
 			const response = await fetch(
 				"https://asphaltguard-pothole.hf.space/detect",
 				{
@@ -37,23 +41,60 @@ function YOLO26() {
 				},
 			)
 
-			if (!response.ok) {
-				alert("Scan failed")
-				throw new Error("Scan failed")
-			}
+			if (!response.ok) throw new Error("Scan failed")
+			const data = await response.json() // Contains {count, image}
 
-			// 1. Get the response as a Blob (the processed image)
-			const imageBlob = await response.blob()
+			// 2. Prepare for Supabase Upload
+			const timestamp = Date.now()
+			const originalPath = `original_${timestamp}.jpg`
+			const annotatedPath = `annotated_${timestamp}.jpg`
 
-			// 2. Create a URL for the processed image
-			const processedImageUrl = URL.createObjectURL(imageBlob)
+			// Convert the Base64 annotated image back to a Blob for Supabase
+			const annotatedBlob = await (await fetch(data.image)).blob()
 
-			// 3. Update the preview with the result from the API
-			// @ts-expect-error ble
-			setPreviewUrl(processedImageUrl)
+			// 3. Upload Original Image to Bucket
+			// @ts-expect-error yes
+			const { data: origData, error: origErr } = await supabase.storage
+				.from("ai-pothole-scanner")
+				.upload(originalPath, image)
+
+			// 4. Upload Annotated Image to Bucket
+			// @ts-expect-error yes
+			const { data: annData, error: annErr } = await supabase.storage
+				.from("ai-pothole-scanner")
+				.upload(annotatedPath, annotatedBlob)
+
+			if (origErr || annErr) throw new Error("Storage upload failed")
+
+			// 5. Get Public URLs
+			const {
+				data: { publicUrl: original_img_url },
+			} = supabase.storage.from("ai-pothole-scanner").getPublicUrl(originalPath)
+
+			const {
+				data: { publicUrl: annotated_img_url },
+			} = supabase.storage
+				.from("ai-pothole-scanner")
+				.getPublicUrl(annotatedPath)
+
+			// 6. Save Scan Info to Database
+			const { error: dbError } = await supabase.from("scan_history").insert([
+				{
+					original_img_url,
+					annotated_img_url,
+					pothole_count: data.count,
+					created_at: new Date(),
+				},
+			])
+
+			if (dbError) throw dbError
+
+			// Update UI
+			setPreviewUrl(data.image)
+			setDetectionCount(data.count)
 		} catch (error) {
 			console.error("Error:", error)
-			alert(error)
+			alert("Process failed. See console for details.")
 		} finally {
 			setIsLoading(false)
 		}

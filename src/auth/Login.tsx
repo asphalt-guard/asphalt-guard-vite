@@ -47,7 +47,7 @@ function Login() {
 
 	return (
 		<div className="flex min-h-screen font-sans bg-gray-50 flex-col">
-			<div className="flex justify-between items-center p-5 border-b border-b-[#cccccc] shadow">
+			<div className="flex justify-between items-center p-5 border-b border-b-[#cccccc] shadow bg-white">
 				<div className="flex gap-2.5">
 					<TrafficConeIcon />
 					<p>AsphaltGuard</p>

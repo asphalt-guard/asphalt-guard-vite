@@ -7,24 +7,85 @@ function DashboardHome() {
 	const navigate = useNavigate()
 	const [user, setUser] = useState(null)
 	const [loading, setLoading] = useState(true)
+	const [stats, setStats] = useState({
+		totalInspected: 0,
+		totalDefects: 0,
+		good: 0,
+		fair: 0,
+		deteriorating: 0,
+		critical: 0,
+		latestTime: "N/A",
+	})
 
 	useEffect(() => {
-		const initAuth = async () => {
+		const initDashboard = async () => {
+			setLoading(true)
+
+			// 1. Auth and User Setup
 			const {
 				data: { session },
 			} = await supabase.auth.getSession()
-			const user = await getUserByUID(session?.user.id)
-			setUser(user)
+			const userData = await getUserByUID(session?.user.id)
+			setUser(userData)
+
+			// 2. Fetch all scans to calculate logic
+			// @ts-expect-error yes
+			const { data: scans, error } = await supabase
+				.from("scan_history")
+				.select("*")
+				.order("created_at", { ascending: false })
+
+			if (scans && scans.length > 0) {
+				const totalInspected = scans.length
+				let totalDefects = 0
+				let good = 0,
+					fair = 0,
+					deteriorating = 0,
+					critical = 0
+
+				scans.forEach((scan) => {
+					const count = scan.pothole_count || 0
+					totalDefects += count
+
+					// Logic based on your requirements
+					if (count === 0) good++
+					else if (count === 1) fair++
+					else if (count === 2) deteriorating++
+					else if (count >= 3) critical++
+				})
+
+				// Format Latest Inspection Time (from the first item in sorted list)
+				const latest = new Date(scans[0].created_at)
+				const formattedTime = `${latest.toLocaleDateString()} ${latest.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+
+				setStats({
+					totalInspected,
+					totalDefects,
+					good,
+					fair,
+					deteriorating,
+					critical,
+					latestTime: formattedTime,
+				})
+			}
+
 			setLoading(false)
 		}
 
-		initAuth()
+		initDashboard()
 	}, [])
 
 	const handlePotholeScanner = async () => {
 		setLoading(true)
 		setTimeout(() => {
 			navigate("/demo/yolo26")
+		}, 500)
+	}
+
+	const handleScanHistory = async () => {
+		setLoading(true)
+		setTimeout(() => {
+			navigate("/dashboard/scanhistory")
 		}, 500)
 	}
 
@@ -55,32 +116,40 @@ function DashboardHome() {
 					<div className="border-b border-b-[#cccccc]"></div>
 					<div className="flex justify-between gap-20">
 						<p>Total Inspected Areas</p>
-						<p>0</p>
+						<p>{stats.totalInspected}</p>
 					</div>
 					<div className="flex justify-between gap-20">
 						<p>Total Detected Defects</p>
-						<p>0</p>
+						<p>{stats.totalDefects}</p>
 					</div>
 					<div className="flex justify-between gap-20">
 						<p>Number of Good Conditions</p>
-						<p>0</p>
+						<p>{stats.good}</p>
 					</div>
 					<div className="flex justify-between gap-20">
 						<p>Number of Fair Conditions</p>
-						<p>0</p>
+						<p>{stats.fair}</p>
 					</div>
 					<div className="flex justify-between gap-20">
 						<p>Number of Deteriorating Conditions</p>
-						<p>0</p>
+						<p>{stats.deteriorating}</p>
 					</div>
 					<div className="flex justify-between gap-20">
 						<p>Number of Critical Conditions</p>
-						<p>0</p>
+						<p>{stats.critical}</p>
 					</div>
 					<div className="flex justify-between gap-20">
 						<p>Latest Inspection Time</p>
-						<p>N/A</p>
+						<p>{stats.latestTime}</p>
 					</div>
+					<button
+						className={
+							"shadow p-2.5 rounded-[10px] transition-all w-full border hover:text-white font-normal hover:bg-black bg-white text-black hover:border-black"
+						}
+						onClick={handleScanHistory}
+					>
+						Scan History
+					</button>
 					<div className="border-b border-b-[#cccccc]"></div>
 					<button
 						className={
@@ -88,7 +157,7 @@ function DashboardHome() {
 						}
 						onClick={handlePotholeScanner}
 					>
-						Try AI Pothole Scanner
+						AI Pothole Scanner
 					</button>
 					<button
 						className={
