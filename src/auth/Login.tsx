@@ -68,22 +68,38 @@ function Login() {
 						</p>
 					</div>
 					<div className="flex flex-col justify-center items-center gap-2.5 w-full">
-						<input
-							type="text"
-							name="email"
-							value={credentials.email}
-							onChange={handleChangeForm}
-							placeholder="📧 Email"
-							className="border border-[#cccccc] rounded-[10px] p-2.5 w-full"
-						/>
-						<input
-							type="password"
-							name="password"
-							value={credentials.password}
-							onChange={handleChangeForm}
-							placeholder="🔒 Password"
-							className="border border-[#cccccc] rounded-[10px] p-2.5 w-full"
-						/>
+						<div className="flex flex-col gap-1 w-full">
+							<label
+								htmlFor="email"
+								className="text-sm font-medium text-gray-700"
+							>
+								📧 Email
+							</label>
+							<input
+								id="email"
+								type="text"
+								name="email"
+								value={credentials.email}
+								onChange={handleChangeForm}
+								className="border border-[#cccccc] rounded-[10px] p-2.5 w-full"
+							/>
+						</div>
+						<div className="flex flex-col gap-1 w-full">
+							<label
+								htmlFor="password"
+								className="text-sm font-medium text-gray-700"
+							>
+								🔒 Password
+							</label>
+							<input
+								id="password"
+								type="password"
+								name="password"
+								value={credentials.password}
+								onChange={handleChangeForm}
+								className="border border-[#cccccc] rounded-[10px] p-2.5 w-full"
+							/>
+						</div>
 						<div className="flex justify-between w-full">
 							<p className="text-[0.7rem] text-[red]">{message}</p>
 							<Link

@@ -86,52 +86,100 @@ function SignUp() {
 					</div>
 
 					<div className="flex flex-col justify-center gap-2.5 w-full">
-						<input
-							type="text"
-							name="username"
-							placeholder="👤 Username"
-							value={formData.username}
-							onChange={handleChangeForm}
-							className="border border-[#cccccc] rounded-[10px] p-2.5 w-full focus:outline-black"
-						/>
-						<input
-							type="text"
-							name="full_name"
-							placeholder="🧑 Full Name"
-							value={formData.full_name}
-							onChange={handleChangeForm}
-							className="border border-[#cccccc] rounded-[10px] p-2.5 w-full focus:outline-black"
-						/>
-						<input
-							type="text"
-							name="contact_number"
-							placeholder="📞 Contact Number"
-							value={formData.contact_number}
-							onChange={handleChangeForm}
-							className="border border-[#cccccc] rounded-[10px] p-2.5 w-full focus:outline-black"
-						/>
-						<input
-							type="email"
-							name="email"
-							placeholder="📧 Email"
-							value={formData.email}
-							onChange={handleChangeForm}
-							className="border border-[#cccccc] rounded-[10px] p-2.5 w-full focus:outline-black"
-						/>
-						<input
-							type="password"
-							placeholder="🔒 Password"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							className="border border-[#cccccc] rounded-[10px] p-2.5 w-full focus:outline-black"
-						/>
-						<input
-							type="password"
-							placeholder="🔒 Confirm Password"
-							value={confirmPassword}
-							onChange={(e) => setConfirmPassword(e.target.value)}
-							className="border border-[#cccccc] rounded-[10px] p-2.5 w-full focus:outline-black"
-						/>
+						<div className="flex flex-col gap-1">
+							<label
+								htmlFor="username"
+								className="text-sm font-medium text-gray-700"
+							>
+								👤 Username
+							</label>
+							<input
+								id="username"
+								type="text"
+								name="username"
+								value={formData.username}
+								onChange={handleChangeForm}
+								className="border border-[#cccccc] rounded-[10px] p-2.5 w-full focus:outline-black"
+							/>
+						</div>
+						<div className="flex flex-col gap-1">
+							<label
+								htmlFor="full_name"
+								className="text-sm font-medium text-gray-700"
+							>
+								🧑 Full Name
+							</label>
+							<input
+								id="full_name"
+								type="text"
+								name="full_name"
+								value={formData.full_name}
+								onChange={handleChangeForm}
+								className="border border-[#cccccc] rounded-[10px] p-2.5 w-full focus:outline-black"
+							/>
+						</div>
+						<div className="flex flex-col gap-1">
+							<label
+								htmlFor="contact_number"
+								className="text-sm font-medium text-gray-700"
+							>
+								📞 Contact Number
+							</label>
+							<input
+								id="contact_number"
+								type="text"
+								name="contact_number"
+								value={formData.contact_number}
+								onChange={handleChangeForm}
+								className="border border-[#cccccc] rounded-[10px] p-2.5 w-full focus:outline-black"
+							/>
+						</div>
+						<div className="flex flex-col gap-1">
+							<label
+								htmlFor="email"
+								className="text-sm font-medium text-gray-700"
+							>
+								📧 Email
+							</label>
+							<input
+								id="email"
+								type="email"
+								name="email"
+								value={formData.email}
+								onChange={handleChangeForm}
+								className="border border-[#cccccc] rounded-[10px] p-2.5 w-full focus:outline-black"
+							/>
+						</div>
+						<div className="flex flex-col gap-1">
+							<label
+								htmlFor="password"
+								className="text-sm font-medium text-gray-700"
+							>
+								🔒 Password
+							</label>
+							<input
+								id="password"
+								type="password"
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								className="border border-[#cccccc] rounded-[10px] p-2.5 w-full focus:outline-black"
+							/>
+						</div>
+						<div className="flex flex-col gap-1">
+							<label
+								htmlFor="confirm_password"
+								className="text-sm font-medium text-gray-700"
+							>
+								🔒 Confirm Password
+							</label>
+							<input
+								id="confirm_password"
+								type="password"
+								value={confirmPassword}
+								onChange={(e) => setConfirmPassword(e.target.value)}
+								className="border border-[#cccccc] rounded-[10px] p-2.5 w-full focus:outline-black"
+							/>
+						</div>
 					</div>
 
 					<div className="border-b border-b-[#cccccc] w-full"></div>
