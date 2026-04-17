@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="10 4 44 56" role="img" aria-label="AsphaltGuard logo">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+  </defs>
+  <path d="M32 4 10 12v16c0 16.6 9.8 25.8 22 32 12.2-6.2 22-15.4 22-32V12L32 4z" fill="url(#shieldGrad)" />
+  <path d="M32 12 18 17v11c0 11.8 6.4 18.5 14 23 7.6-4.5 14-11.2 14-23V17L32 12z" fill="#111827" />
+  <path d="M27 18h10l6 24H21l6-24z" fill="#374151" />
+  <path d="M31.25 21h1.5v18h-1.5z" fill="#f8fafc" />
+  <path d="m32.8 29-2.4 3.2 2.1 2.6-2.7 3.6" fill="none" stroke="#facc15" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

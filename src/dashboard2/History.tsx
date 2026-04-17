@@ -1,4 +1,3 @@
-import { TrafficConeIcon } from "lucide-react"
 import SideNavigation from "../components/SideNavigation"
 import { useNavigate } from "react-router-dom"
 
@@ -17,7 +16,11 @@ function History() {
 				style={{ margin: "0 10px 10px 10px" }}
 			>
 				<div className="flex gap-2.5">
-					<TrafficConeIcon />
+					<img
+						src="/asphaltguard-favicon.svg"
+						alt="AsphaltGuard logo"
+						className="h-6 w-6"
+					/>
 					<p>AsphaltGuard</p>
 				</div>
 				<p>History</p>
