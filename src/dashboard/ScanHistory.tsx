@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import { getUserByUID, supabase } from "../lib/supabase"
-import { TrafficConeIcon } from "lucide-react"
 import ScanHistoryCard from "../components/ScanHistoryCard"
 
 function DashboardScanHistory() {
@@ -40,7 +39,11 @@ function DashboardScanHistory() {
 		<div className="flex min-h-screen font-sans bg-gray-50 flex-col">
 			<div className="flex justify-between items-center p-5 border-b border-b-[#cccccc] shadow bg-white">
 				<div className="flex gap-2.5">
-					<TrafficConeIcon />
+					<img
+						src="/asphaltguard-favicon.svg"
+						alt="AsphaltGuard logo"
+						className="h-6 w-6"
+					/>
 					<p className="font-bold">AsphaltGuard</p>
 				</div>
 				<p>Dashboard</p>

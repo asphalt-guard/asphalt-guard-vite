@@ -47,6 +47,23 @@ export const getUserByUID = async (UID) => {
 	return data
 }
 
+/** Updates `last_login` on the `users` row for the signed-in auth user. */
+export async function updateLastLogin(userId: string | undefined) {
+	if (!userId) return false
+
+	const { error } = await supabase
+		.from("users")
+		.update({ last_login: new Date().toISOString() })
+		.eq("user_id", userId)
+
+	if (error) {
+		console.error("Error updating last_login:", error.message)
+		return false
+	}
+
+	return true
+}
+
 export const logIn = async (credentials: object) => {
 	// @ts-expect-error yes
 	const { error } = await supabase.auth.signInWithPassword(credentials)
