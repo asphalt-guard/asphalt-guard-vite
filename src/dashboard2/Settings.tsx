@@ -9,7 +9,7 @@ function Settings() {
 	}
 
 	return (
-		<div className="flex min-h-screen font-sans bg-gray-50 flex-col p-5">
+		<div className="flex h-screen overflow-hidden font-sans bg-gray-50 flex-col p-5">
 			{/* Header */}
 			<div
 				className="flex justify-between items-center p-5 rounded-lg shadow-md border border-[#e0e0e0] bg-white"
@@ -27,7 +27,7 @@ function Settings() {
 			</div>
 
 			{/* Main Content Area */}
-			<div className="flex flex-1 gap-5">
+			<div className="flex flex-1 gap-5 min-h-0 overflow-hidden">
 				{/* Navigation Sidebar */}
 				<div style={{ margin: "10px", minWidth: "fit-content" }}>
 					<SideNavigation onNavigate={handleNavigation} activePath="settings" />
@@ -35,10 +35,10 @@ function Settings() {
 
 				{/* Main Content */}
 				<div
-					className="flex-1 bg-white rounded-lg shadow-md border border-[#e0e0e0]"
+					className="flex flex-1 min-h-0 min-w-0 items-center justify-center bg-white rounded-lg shadow-md border border-[#e0e0e0] p-8"
 					style={{ margin: "10px" }}
 				>
-					{/* Content will go here */}
+					<p className="text-lg font-medium text-gray-500">Coming soon</p>
 				</div>
 			</div>
 		</div>

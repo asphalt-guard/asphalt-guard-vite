@@ -6,18 +6,16 @@ function AIModels() {
     const models = [
         {
             id: "model-01",
-            name: "Road Defect Detector v1",
-            modelType: "YOLOv8m",
-            dateTrained: "2026-03-14",
-            f1Score: 0.92,
-            description:
-                "Balanced model for crack and pothole detection across urban roads.",
+            name: "AsphaltGuard Model v1",
+            modelType: "YOLOv26n",
+            dateTrained: "February 18, 2026",
+            f1Score: 0.81,
+            description: "First model trained on the pothole dataset.",
             confusionMatrix: [
                 [84, 7],
                 [5, 91],
             ],
-            workingImage:
-                "https://images.unsplash.com/photo-1518391846015-55a9cc003b25?auto=format&fit=crop&w=900&q=80",
+            workingImage: "potholes630.jpg",
             futureInfo: "4h 12m",
         },
     ];
@@ -87,7 +85,7 @@ function AIModels() {
 
                                     <div className="p-5 grid grid-cols-1 xl:grid-cols-12 gap-5">
                                         <div className="xl:col-span-5">
-                                            <div className="bg-white border border-gray-200 rounded-xl p-3 h-full">
+                                            <div className="bg-white border border-gray-200 rounded-xl p-3 h-full transition-all duration-200 hover:shadow-sm hover:border-gray-300 hover:-translate-y-0.5">
                                                 <img
                                                     src={model.workingImage}
                                                     alt={`${model.name} preview`}
@@ -104,7 +102,7 @@ function AIModels() {
 
                                         <div className="xl:col-span-7 space-y-4">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                <div className="bg-white border border-gray-200 rounded-lg p-3">
+                                                <div className="bg-white border border-gray-200 rounded-lg p-3 transition-all duration-200 hover:shadow-sm hover:border-gray-300 hover:-translate-y-0.5">
                                                     <p className="text-xs uppercase tracking-wide text-gray-500">
                                                         Model Type
                                                     </p>
@@ -112,7 +110,7 @@ function AIModels() {
                                                         {model.modelType}
                                                     </p>
                                                 </div>
-                                                <div className="bg-white border border-gray-200 rounded-lg p-3">
+                                                <div className="bg-white border border-gray-200 rounded-lg p-3 transition-all duration-200 hover:shadow-sm hover:border-gray-300 hover:-translate-y-0.5">
                                                     <p className="text-xs uppercase tracking-wide text-gray-500">
                                                         Date Trained
                                                     </p>
@@ -120,7 +118,7 @@ function AIModels() {
                                                         {model.dateTrained}
                                                     </p>
                                                 </div>
-                                                <div className="bg-white border border-gray-200 rounded-lg p-3">
+                                                <div className="bg-white border border-gray-200 rounded-lg p-3 transition-all duration-200 hover:shadow-sm hover:border-gray-300 hover:-translate-y-0.5">
                                                     <p className="text-xs uppercase tracking-wide text-gray-500">
                                                         Time Training
                                                     </p>
@@ -128,7 +126,7 @@ function AIModels() {
                                                         {model.futureInfo}
                                                     </p>
                                                 </div>
-                                                <div className="bg-white border border-gray-200 rounded-lg p-3">
+                                                <div className="bg-white border border-gray-200 rounded-lg p-3 transition-all duration-200 hover:shadow-sm hover:border-gray-300 hover:-translate-y-0.5">
                                                     <p className="text-xs uppercase tracking-wide text-gray-500">
                                                         Status
                                                     </p>
@@ -140,7 +138,7 @@ function AIModels() {
                                             </div>
 
                                             <div className="flex flex-col md:flex-row gap-3">
-                                                <div className="bg-white border border-gray-200 rounded-xl p-4 md:w-1/2">
+                                                <div className="bg-white border border-gray-200 rounded-xl p-4 md:w-1/2 transition-all duration-200 hover:shadow-sm hover:border-gray-300 hover:-translate-y-0.5">
                                                     <p className="text-xs uppercase tracking-wide text-gray-500 mb-3">
                                                         Confusion Matrix
                                                     </p>
@@ -165,7 +163,7 @@ function AIModels() {
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="md:w-1/2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 flex flex-col justify-center">
+                                                <div className="md:w-1/2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 flex flex-col justify-center transition-all duration-200 hover:shadow-sm hover:border-emerald-300 hover:-translate-y-0.5">
                                                     <p className="text-xs uppercase tracking-wide text-emerald-700">
                                                         F1 Score
                                                     </p>
