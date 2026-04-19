@@ -58,13 +58,22 @@ function AIModels() {
                     style={{ margin: "10px" }}
                 >
                     <div className="h-full flex flex-col">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
                             <h2 className="text-xl font-semibold text-gray-800">
                                 Model Dashboard
                             </h2>
-                            <span className="text-sm text-gray-500">
-                                {models.length} models
-                            </span>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => navigate("/demo/yolo26")}
+                                    className="h-9 rounded-lg border border-gray-900 bg-gray-900 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-gray-800"
+                                >
+                                    Try
+                                </button>
+                                <span className="text-sm text-gray-500">
+                                    {models.length} models
+                                </span>
+                            </div>
                         </div>
 
                         <div className="flex-1 overflow-y-auto pr-1 space-y-5">
