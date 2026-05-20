@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
     LayoutDashboard,
+    Radio,
     User,
     Users,
     Cpu,
@@ -27,6 +28,12 @@ function SideNavigation({
     const [activeItem, setActiveItem] = useState(activePath);
 
     const navItems: NavItem[] = [
+        {
+            id: "live-feed",
+            label: "Live Feed",
+            icon: <Radio size={20} />,
+            path: "/live-feed",
+        },
         {
             id: "dashboard",
             label: "Dashboard",

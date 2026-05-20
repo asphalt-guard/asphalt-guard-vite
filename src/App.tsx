@@ -6,6 +6,7 @@ import SignUp from "./auth/SignUp"
 import DashboardHome from "./dashboard/Home"
 import DashboardScanHistory from "./dashboard/ScanHistory"
 import DashboardLayout from "./dashboard2/Home"
+import LiveFeed from "./dashboard2/LiveFeed"
 import Account from "./dashboard2/Account"
 import Users from "./dashboard2/Users"
 import AIModels from "./dashboard2/AIModels"
@@ -22,6 +23,7 @@ function App() {
 				<Route path="/login" element={<Login />} />
 				<Route path="/signup" element={<SignUp />} />
 				{/* Dashboard v2 routes (main) */}
+				<Route path="/live-feed" element={<LiveFeed />} />
 				<Route path="/dashboard" element={<DashboardLayout />} />
 				<Route path="/account" element={<Account />} />
 				<Route path="/users" element={<Users />} />
