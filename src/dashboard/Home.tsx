@@ -2,6 +2,22 @@ import { useEffect, useState } from "react"
 import { getUserByUID, logOut, supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
 
+type ConditionKey = "good" | "fair" | "deteriorating" | "critical"
+
+/**
+ * Asphalt Aging Condition (Surface Temperature criteria):
+ *   Good          ≤ 50°C
+ *   Fair          51–60°C
+ *   Deteriorating 61–70°C
+ *   Critical      > 70°C
+ */
+function classifyByMaxTemp(maxTemp: number): ConditionKey {
+	if (maxTemp <= 50) return "good"
+	if (maxTemp <= 60) return "fair"
+	if (maxTemp <= 70) return "deteriorating"
+	return "critical"
+}
+
 function DashboardHome() {
 	const navigate = useNavigate()
 	const [user, setUser] = useState(null)
@@ -15,6 +31,7 @@ function DashboardHome() {
 		critical: 0,
 		latestTime: "N/A",
 		peakMaxTemp: null as number | null,
+		thermalSamples: 0,
 	})
 
 	useEffect(() => {
@@ -46,17 +63,15 @@ function DashboardHome() {
 				const thermalValues: number[] = []
 
 				scans.forEach((scan) => {
-					const count = scan.pothole_count || 0
-					totalDefects += count
-
-					// Logic based on your requirements
-					if (count === 0) good++
-					else if (count === 1) fair++
-					else if (count === 2) deteriorating++
-					else if (count >= 3) critical++
+					totalDefects += scan.pothole_count || 0
 
 					if (typeof scan.max_temp === "number") {
 						thermalValues.push(scan.max_temp)
+						const bucket = classifyByMaxTemp(scan.max_temp)
+						if (bucket === "good") good++
+						else if (bucket === "fair") fair++
+						else if (bucket === "deteriorating") deteriorating++
+						else critical++
 					}
 				})
 
@@ -78,6 +93,7 @@ function DashboardHome() {
 					critical,
 					latestTime: formattedTime,
 					peakMaxTemp,
+					thermalSamples: thermalValues.length,
 				})
 			}
 
@@ -138,20 +154,27 @@ function DashboardHome() {
 						<p>Total Detected Defects</p>
 						<p>{stats.totalDefects}</p>
 					</div>
+					<div className="flex justify-between gap-2 text-gray-500 text-xs">
+						<p>Condition based on surface temperature</p>
+						<p>
+							{stats.thermalSamples} / {stats.totalInspected}{" "}
+							classified
+						</p>
+					</div>
 					<div className="flex justify-between gap-20">
-						<p>Number of Good Conditions</p>
+						<p>Good Conditions (≤ 50°C)</p>
 						<p>{stats.good}</p>
 					</div>
 					<div className="flex justify-between gap-20">
-						<p>Number of Fair Conditions</p>
+						<p>Fair Conditions (51–60°C)</p>
 						<p>{stats.fair}</p>
 					</div>
 					<div className="flex justify-between gap-20">
-						<p>Number of Deteriorating Conditions</p>
+						<p>Deteriorating Conditions (61–70°C)</p>
 						<p>{stats.deteriorating}</p>
 					</div>
 					<div className="flex justify-between gap-20">
-						<p>Number of Critical Conditions</p>
+						<p>Critical Conditions (&gt; 70°C)</p>
 						<p>{stats.critical}</p>
 					</div>
 					<div className="flex justify-between gap-20">

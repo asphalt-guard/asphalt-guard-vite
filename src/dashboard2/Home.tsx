@@ -5,6 +5,22 @@ import { useNavigate } from "react-router-dom";
 
 type UsersRow = { username?: string | null };
 
+type ConditionKey = "good" | "fair" | "deteriorating" | "critical";
+
+/**
+ * Asphalt Aging Condition (Surface Temperature criteria):
+ *   Good          ≤ 50°C
+ *   Fair          51–60°C
+ *   Deteriorating 61–70°C
+ *   Critical      > 70°C
+ */
+function classifyByMaxTemp(maxTemp: number): ConditionKey {
+    if (maxTemp <= 50) return "good";
+    if (maxTemp <= 60) return "fair";
+    if (maxTemp <= 70) return "deteriorating";
+    return "critical";
+}
+
 function DashboardLayout() {
     const navigate = useNavigate();
     const [user, setUser] = useState<UsersRow | null>(null);
@@ -56,16 +72,15 @@ function DashboardLayout() {
                 const thermalValues: number[] = [];
 
                 (scans as ScanRow[]).forEach((scan) => {
-                    const count = scan.pothole_count || 0;
-                    totalDefects += count;
-
-                    if (count === 0) good++;
-                    else if (count === 1) fair++;
-                    else if (count === 2) deteriorating++;
-                    else if (count >= 3) critical++;
+                    totalDefects += scan.pothole_count || 0;
 
                     if (typeof scan.max_temp === "number") {
                         thermalValues.push(scan.max_temp);
+                        const bucket = classifyByMaxTemp(scan.max_temp);
+                        if (bucket === "good") good++;
+                        else if (bucket === "fair") fair++;
+                        else if (bucket === "deteriorating") deteriorating++;
+                        else critical++;
                     }
                 });
 
@@ -119,18 +134,26 @@ function DashboardLayout() {
 
     const conditionBreakdown = [
         {
-            label: "Good Conditions",
+            label: "Good",
+            range: "≤ 50°C",
             value: stats.good,
             color: "bg-emerald-500",
         },
-        { label: "Fair Conditions", value: stats.fair, color: "bg-yellow-500" },
         {
-            label: "Deteriorating Conditions",
+            label: "Fair",
+            range: "51–60°C",
+            value: stats.fair,
+            color: "bg-yellow-500",
+        },
+        {
+            label: "Deteriorating",
+            range: "61–70°C",
             value: stats.deteriorating,
             color: "bg-orange-500",
         },
         {
-            label: "Critical Conditions",
+            label: "Critical",
+            range: "> 70°C",
             value: stats.critical,
             color: "bg-red-500",
         },
@@ -229,16 +252,26 @@ function DashboardLayout() {
                         </div>
 
                         <div className="border border-gray-200 rounded-lg p-4">
-                            <p className="text-base font-medium text-gray-900 mb-4">
-                                Condition Breakdown
+                            <div className="flex items-baseline justify-between mb-1">
+                                <p className="text-base font-medium text-gray-900">
+                                    Condition Breakdown
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                    Based on surface temperature
+                                </p>
+                            </div>
+                            <p className="text-xs text-gray-500 mb-4">
+                                {stats.thermalSamples > 0
+                                    ? `${stats.thermalSamples} of ${stats.totalInspected} scans classified`
+                                    : "No thermal-tagged scans yet"}
                             </p>
                             <div className="space-y-4">
                                 {conditionBreakdown.map((item) => {
                                     const percentage =
-                                        stats.totalInspected > 0
+                                        stats.thermalSamples > 0
                                             ? Math.round(
                                                   (item.value /
-                                                      stats.totalInspected) *
+                                                      stats.thermalSamples) *
                                                       100,
                                               )
                                             : 0;
@@ -247,7 +280,10 @@ function DashboardLayout() {
                                         <div key={item.label}>
                                             <div className="flex justify-between text-sm mb-1">
                                                 <span className="text-gray-700">
-                                                    {item.label}
+                                                    {item.label}{" "}
+                                                    <span className="text-gray-400">
+                                                        ({item.range})
+                                                    </span>
                                                 </span>
                                                 <span className="font-medium text-gray-900">
                                                     {item.value} ({percentage}%)
