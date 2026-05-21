@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Thermometer } from "lucide-react";
 import SideNavigation from "../components/SideNavigation";
 import ScanHistoryCard from "../components/ScanHistoryCard";
 import { getUserByUID, supabase } from "../lib/supabase";
@@ -11,7 +12,9 @@ type ScanHistoryRow = {
     id: string | number;
     created_at: string;
     annotated_img_url: string;
+    thermal_img_url?: string | null;
     pothole_count?: number | null;
+    max_temp?: number | null;
 };
 
 function History() {
@@ -56,6 +59,13 @@ function History() {
     const handleNavigation = (path: string) => {
         navigate(path);
     };
+
+    const peakMaxTemp = useMemo(() => {
+        const temps = scans
+            .map((s) => s.max_temp)
+            .filter((t): t is number => typeof t === "number");
+        return temps.length > 0 ? Math.max(...temps) : null;
+    }, [scans]);
 
     return (
         <div className="flex h-screen overflow-hidden font-sans bg-gray-50 flex-col p-5">
@@ -119,6 +129,12 @@ function History() {
                                                 aria-hidden
                                             />
                                             {user.username}
+                                        </span>
+                                    ) : null}
+                                    {peakMaxTemp !== null ? (
+                                        <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200/90 bg-orange-50/90 px-3.5 py-1.5 text-sm font-medium text-orange-700 shadow-sm backdrop-blur-sm">
+                                            <Thermometer size={14} aria-hidden />
+                                            Peak {peakMaxTemp}°C
                                         </span>
                                     ) : null}
                                     <div className="flex min-w-34 items-baseline gap-2 rounded-2xl border border-gray-200/90 bg-white/95 px-5 py-3 shadow-sm backdrop-blur-sm">

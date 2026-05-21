@@ -17,6 +17,9 @@ function DashboardLayout() {
         deteriorating: 0,
         critical: 0,
         latestTime: "N/A",
+        peakMaxTemp: null as number | null,
+        avgMaxTemp: null as number | null,
+        thermalSamples: 0,
     });
 
     useEffect(() => {
@@ -39,6 +42,7 @@ function DashboardLayout() {
             type ScanRow = {
                 pothole_count?: number | null;
                 created_at: string;
+                max_temp?: number | null;
             };
 
             if (scans && scans.length > 0) {
@@ -49,6 +53,8 @@ function DashboardLayout() {
                     deteriorating = 0,
                     critical = 0;
 
+                const thermalValues: number[] = [];
+
                 (scans as ScanRow[]).forEach((scan) => {
                     const count = scan.pothole_count || 0;
                     totalDefects += count;
@@ -57,10 +63,26 @@ function DashboardLayout() {
                     else if (count === 1) fair++;
                     else if (count === 2) deteriorating++;
                     else if (count >= 3) critical++;
+
+                    if (typeof scan.max_temp === "number") {
+                        thermalValues.push(scan.max_temp);
+                    }
                 });
 
                 const latest = new Date((scans as ScanRow[])[0].created_at);
                 const formattedTime = `${latest.toLocaleDateString()} ${latest.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+
+                const peakMaxTemp =
+                    thermalValues.length > 0
+                        ? Math.max(...thermalValues)
+                        : null;
+                const avgMaxTemp =
+                    thermalValues.length > 0
+                        ? Math.round(
+                              thermalValues.reduce((a, b) => a + b, 0) /
+                                  thermalValues.length,
+                          )
+                        : null;
 
                 setStats({
                     totalInspected,
@@ -70,6 +92,9 @@ function DashboardLayout() {
                     deteriorating,
                     critical,
                     latestTime: formattedTime,
+                    peakMaxTemp,
+                    avgMaxTemp,
+                    thermalSamples: thermalValues.length,
                 });
             } else {
                 setStats({
@@ -80,6 +105,9 @@ function DashboardLayout() {
                     deteriorating: 0,
                     critical: 0,
                     latestTime: "N/A",
+                    peakMaxTemp: null,
+                    avgMaxTemp: null,
+                    thermalSamples: 0,
                 });
             }
 
@@ -263,6 +291,16 @@ function DashboardLayout() {
                                     </div>
                                     <div className="flex items-center justify-between p-3 rounded bg-gray-50 border border-gray-200">
                                         <p className="text-sm text-gray-700">
+                                            Peak Surface Temp
+                                        </p>
+                                        <p className="text-sm font-semibold text-gray-900">
+                                            {stats.peakMaxTemp !== null
+                                                ? `${stats.peakMaxTemp}°C`
+                                                : "—"}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 rounded bg-gray-50 border border-gray-200">
+                                        <p className="text-sm text-gray-700">
                                             Latest Inspection
                                         </p>
                                         <p className="text-sm font-semibold text-gray-900">
@@ -285,6 +323,51 @@ function DashboardLayout() {
                                     </p>
                                     <p className="text-xs text-gray-500 mt-2">
                                         Based on the recent data
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="border border-gray-200 rounded-lg p-4">
+                            <p className="text-base font-medium text-gray-900 mb-4">
+                                Surface Temperature
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
+                                    <p className="text-xs font-medium text-orange-700 uppercase tracking-wide">
+                                        Peak Max Temp
+                                    </p>
+                                    <p className="text-3xl font-bold text-orange-700 mt-1">
+                                        {stats.peakMaxTemp !== null
+                                            ? `${stats.peakMaxTemp}°C`
+                                            : "—"}
+                                    </p>
+                                    <p className="text-xs text-orange-700/70 mt-1">
+                                        Hottest reading on record
+                                    </p>
+                                </div>
+                                <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                                    <p className="text-xs font-medium text-amber-700 uppercase tracking-wide">
+                                        Avg Max Temp
+                                    </p>
+                                    <p className="text-3xl font-bold text-amber-700 mt-1">
+                                        {stats.avgMaxTemp !== null
+                                            ? `${stats.avgMaxTemp}°C`
+                                            : "—"}
+                                    </p>
+                                    <p className="text-xs text-amber-700/70 mt-1">
+                                        Across thermal-tagged scans
+                                    </p>
+                                </div>
+                                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                    <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                                        Thermal Samples
+                                    </p>
+                                    <p className="text-3xl font-bold text-gray-900 mt-1">
+                                        {stats.thermalSamples}
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Scans with temperature data
                                     </p>
                                 </div>
                             </div>

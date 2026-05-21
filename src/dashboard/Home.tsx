@@ -14,6 +14,7 @@ function DashboardHome() {
 		deteriorating: 0,
 		critical: 0,
 		latestTime: "N/A",
+		peakMaxTemp: null as number | null,
 	})
 
 	useEffect(() => {
@@ -42,6 +43,8 @@ function DashboardHome() {
 					deteriorating = 0,
 					critical = 0
 
+				const thermalValues: number[] = []
+
 				scans.forEach((scan) => {
 					const count = scan.pothole_count || 0
 					totalDefects += count
@@ -51,11 +54,20 @@ function DashboardHome() {
 					else if (count === 1) fair++
 					else if (count === 2) deteriorating++
 					else if (count >= 3) critical++
+
+					if (typeof scan.max_temp === "number") {
+						thermalValues.push(scan.max_temp)
+					}
 				})
 
 				// Format Latest Inspection Time (from the first item in sorted list)
 				const latest = new Date(scans[0].created_at)
 				const formattedTime = `${latest.toLocaleDateString()} ${latest.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+
+				const peakMaxTemp =
+					thermalValues.length > 0
+						? Math.max(...thermalValues)
+						: null
 
 				setStats({
 					totalInspected,
@@ -65,6 +77,7 @@ function DashboardHome() {
 					deteriorating,
 					critical,
 					latestTime: formattedTime,
+					peakMaxTemp,
 				})
 			}
 
@@ -140,6 +153,14 @@ function DashboardHome() {
 					<div className="flex justify-between gap-20">
 						<p>Number of Critical Conditions</p>
 						<p>{stats.critical}</p>
+					</div>
+					<div className="flex justify-between gap-20">
+						<p>Peak Surface Temperature</p>
+						<p>
+							{stats.peakMaxTemp !== null
+								? `${stats.peakMaxTemp}°C`
+								: "—"}
+						</p>
 					</div>
 					<div className="flex justify-between gap-20">
 						<p>Latest Inspection Time</p>
