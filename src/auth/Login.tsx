@@ -24,7 +24,7 @@ function Login() {
 		setMessage("")
 		setLoading(true)
 		if (await logIn(credentials)) {
-			navigate("/dashboard")
+			navigate("/map")
 		} else {
 			setLoading(false)
 			setMessage("Username or password is wrong")
@@ -37,7 +37,7 @@ function Login() {
 				data: { session },
 			} = await supabase.auth.getSession()
 
-			if (session) navigate("/dashboard")
+			if (session) navigate("/map")
 
 			setLoading(false)
 		}
