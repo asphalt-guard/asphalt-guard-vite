@@ -12,6 +12,7 @@ import Users from "./dashboard2/Users"
 import AIModels from "./dashboard2/AIModels"
 import History from "./dashboard2/History"
 import Settings from "./dashboard2/Settings"
+import MapView from "./testing/MapView"
 
 function App() {
 	return (
@@ -30,6 +31,8 @@ function App() {
 				<Route path="/ai-models" element={<AIModels />} />
 				<Route path="/history" element={<History />} />
 				<Route path="/settings" element={<Settings />} />
+				{/* Testing routes */}
+				<Route path="/map" element={<MapView />} />
 				{/* Dashboard v1 routes (legacy) */}
 				<Route path="/dashboard-v1" element={<DashboardHome />} />
 				<Route
