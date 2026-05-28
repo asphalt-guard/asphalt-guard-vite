@@ -2,7 +2,16 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
-import { Road, LayoutDashboard, User as UserIcon, Users, Cpu, ChevronLeft, MapPin, Video } from "lucide-react";
+import {
+    Road,
+    LayoutDashboard,
+    User as UserIcon,
+    Users,
+    Cpu,
+    ChevronLeft,
+    MapPin,
+    Video,
+} from "lucide-react";
 import { getUserByUID, supabase } from "../lib/supabase";
 import "leaflet/dist/leaflet.css";
 
@@ -104,10 +113,21 @@ function FlyToPosition({ position }: { position: [number, number] | null }) {
 }
 
 const INFERNO_STOPS: [number, number, number][] = [
-    [0, 0, 4], [10, 7, 34], [31, 12, 72], [60, 9, 101], [89, 0, 110],
-    [120, 14, 106], [148, 33, 97], [174, 53, 84], [197, 76, 68],
-    [216, 100, 50], [231, 127, 33], [241, 158, 16], [245, 191, 10],
-    [242, 225, 37], [252, 255, 164],
+    [0, 0, 4],
+    [10, 7, 34],
+    [31, 12, 72],
+    [60, 9, 101],
+    [89, 0, 110],
+    [120, 14, 106],
+    [148, 33, 97],
+    [174, 53, 84],
+    [197, 76, 68],
+    [216, 100, 50],
+    [231, 127, 33],
+    [241, 158, 16],
+    [245, 191, 10],
+    [242, 225, 37],
+    [252, 255, 164],
 ];
 
 function inferno(t: number): string {
@@ -115,7 +135,8 @@ function inferno(t: number): string {
     const pos = clamped * (INFERNO_STOPS.length - 1);
     const i = Math.min(Math.floor(pos), INFERNO_STOPS.length - 2);
     const f = pos - i;
-    const a = INFERNO_STOPS[i], b = INFERNO_STOPS[i + 1];
+    const a = INFERNO_STOPS[i],
+        b = INFERNO_STOPS[i + 1];
     const r = Math.round(a[0] + (b[0] - a[0]) * f);
     const g = Math.round(a[1] + (b[1] - a[1]) * f);
     const bl = Math.round(a[2] + (b[2] - a[2]) * f);
@@ -175,7 +196,14 @@ function ThermalGrid({ grid }: { grid: number[][] }) {
                         title={`${val.toFixed(1)}°C`}
                         style={{
                             backgroundColor: inferno(
-                                Math.max(0, Math.min(1, (val - TEMP_MIN) / (TEMP_MAX - TEMP_MIN))),
+                                Math.max(
+                                    0,
+                                    Math.min(
+                                        1,
+                                        (val - TEMP_MIN) /
+                                            (TEMP_MAX - TEMP_MIN),
+                                    ),
+                                ),
                             ),
                         }}
                     />
@@ -246,11 +274,23 @@ export default function MapView() {
     const [usersList, setUsersList] = useState<UsersRow[]>([]);
     const [usersLoading, setUsersLoading] = useState(true);
     const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null);
-    const [selectedCapture, setSelectedCapture] = useState<CaptureRow | null>(null);
+    const [selectedCapture, setSelectedCapture] = useState<CaptureRow | null>(
+        null,
+    );
     const [detailVisible, setDetailVisible] = useState(false);
-    const [gpsData, setGpsData] = useState<{ latitude: number; longitude: number; valid: boolean } | null>(null);
-    const [gpsLastValid, setGpsLastValid] = useState<[number, number] | null>(null);
-    const [thermalRaw, setThermalRaw] = useState<{ min_c: number; max_c: number; mean_c: number } | null>(null);
+    const [gpsData, setGpsData] = useState<{
+        latitude: number;
+        longitude: number;
+        valid: boolean;
+    } | null>(null);
+    const [gpsLastValid, setGpsLastValid] = useState<[number, number] | null>(
+        null,
+    );
+    const [thermalRaw, setThermalRaw] = useState<{
+        min_c: number;
+        max_c: number;
+        mean_c: number;
+    } | null>(null);
 
     const openCaptureDetail = (cap: CaptureRow) => {
         setSelectedCapture(cap);
@@ -273,7 +313,9 @@ export default function MapView() {
         let active = true;
         const pollGps = async () => {
             try {
-                const res = await fetch("https://stream.asphaltguard.online/gps");
+                const res = await fetch(
+                    "https://stream.asphaltguard.online/gps",
+                );
                 if (!res.ok) throw new Error("fetch failed");
                 const data = await res.json();
                 if (active) {
@@ -288,7 +330,9 @@ export default function MapView() {
         };
         const pollThermal = async () => {
             try {
-                const res = await fetch("https://stream.asphaltguard.online/api/thermal/raw");
+                const res = await fetch(
+                    "https://stream.asphaltguard.online/api/thermal/raw",
+                );
                 if (!res.ok) throw new Error("fetch failed");
                 const data = await res.json();
                 if (active && !data.error) setThermalRaw(data);
@@ -298,16 +342,23 @@ export default function MapView() {
         };
         pollGps();
         pollThermal();
-        const interval = setInterval(() => { pollGps(); pollThermal(); }, 2000);
-        return () => { active = false; clearInterval(interval); };
+        const interval = setInterval(() => {
+            pollGps();
+            pollThermal();
+        }, 2000);
+        return () => {
+            active = false;
+            clearInterval(interval);
+        };
     }, []);
-
 
     useEffect(() => {
         const loadCaptures = async () => {
             const { data } = await supabase
                 .from("captures")
-                .select("id, gps_latitude, gps_longitude, thermal_max_c, thermal_min_c, thermal_mean_c, thermal_ambient_c, thermal_grid, image_url, yolo_crack, yolo_pothole, captured_at")
+                .select(
+                    "id, gps_latitude, gps_longitude, thermal_max_c, thermal_min_c, thermal_mean_c, thermal_ambient_c, thermal_grid, image_url, yolo_crack, yolo_pothole, captured_at",
+                )
                 .eq("gps_valid", true)
                 .order("captured_at", { ascending: false });
             if (data) setCaptures(data as CaptureRow[]);
@@ -355,7 +406,10 @@ export default function MapView() {
         }
 
         let totalDefects = 0;
-        let good = 0, fair = 0, deteriorating = 0, critical = 0;
+        let good = 0,
+            fair = 0,
+            deteriorating = 0,
+            critical = 0;
         const thermalValues: number[] = [];
 
         captures.forEach((cap) => {
@@ -487,7 +541,9 @@ export default function MapView() {
             {activePanel && (
                 <div
                     className={`absolute top-4 left-20 z-999 w-96 max-h-[calc(100vh-2rem)] rounded-2xl bg-gray-900/95 backdrop-blur-md shadow-2xl overflow-y-auto transition-opacity duration-200 ease-in-out ${
-                        panelVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+                        panelVisible
+                            ? "opacity-100"
+                            : "opacity-0 pointer-events-none"
                     }`}
                 >
                     <div className="p-5 flex flex-col">
@@ -497,392 +553,463 @@ export default function MapView() {
 
                         <div className="flex-1 flex flex-col">
                             {activePanel === "Asphalt Condition" ? (
-                            captures.length === 0 ? (
-                                <p className="text-sm text-gray-400 mt-3">No captures with GPS data found.</p>
-                            ) : (
-                                <div className="flex-1 flex flex-col gap-2 mt-3">
-                                    {captures.map((cap) => {
-                                        const temp = cap.thermal_max_c;
-                                        const conditionLabel =
-                                            temp === null ? "Unknown" :
-                                            temp <= 50 ? "Good" :
-                                            temp <= 60 ? "Fair" :
-                                            temp <= 70 ? "Deteriorating" : "Critical";
-                                        const conditionColor =
-                                            temp === null ? "bg-gray-600" :
-                                            temp <= 50 ? "bg-emerald-500" :
-                                            temp <= 60 ? "bg-yellow-500" :
-                                            temp <= 70 ? "bg-orange-500" : "bg-red-500";
-
-                                        return (
-                                            <button
-                                                key={cap.id}
-                                                onClick={() => openCaptureDetail(cap)}
-                                                className="rounded-lg bg-gray-800/70 p-3 text-left hover:bg-gray-700/70 transition-colors cursor-pointer"
-                                            >
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <p className="text-sm font-medium text-white">
-                                                        {getCaptureTitleByTime(cap.captured_at)}
-                                                    </p>
-                                                    <span className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full text-white ${conditionColor}`}>
-                                                        {conditionLabel}
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center justify-between text-xs text-gray-400">
-                                                    <span>{temp !== null ? `${temp}°C` : "—"}</span>
-                                                    <span>{formatPhilippineDateTime(cap.captured_at)}</span>
-                                                </div>
-                                                <p className="text-[10px] text-gray-500 mt-1">
-                                                    {cap.gps_latitude.toFixed(6)}, {cap.gps_longitude.toFixed(6)}
-                                                </p>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )
-                        ) : activePanel === "Account" ? (
-                            accountLoading ? (
-                                <div className="flex-1 flex items-center justify-center py-8">
-                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
-                                </div>
-                            ) : (
-                                <div className="flex-1 flex flex-col gap-4 mt-3">
-                                    <div className="flex flex-col items-center gap-2">
-                                        <div className="h-16 w-16 rounded-full bg-gray-700 flex items-center justify-center text-lg font-semibold text-white">
-                                            {profileInitials}
-                                        </div>
-                                        <p className="text-sm font-medium text-white">
-                                            {displayName}
-                                        </p>
-                                        <p className="text-xs text-gray-400">
-                                            {displayRole}
-                                        </p>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <div className="rounded-lg bg-gray-800/70 px-3 py-2">
-                                            <p className="text-xs text-gray-500">
-                                                Email
-                                            </p>
-                                            <p className="text-sm text-gray-200 break-all">
-                                                {displayEmail}
-                                            </p>
-                                        </div>
-                                        <div className="rounded-lg bg-gray-800/70 px-3 py-2">
-                                            <p className="text-xs text-gray-500">
-                                                Username
-                                            </p>
-                                            <p className="text-sm text-gray-200">
-                                                {displayUsername}
-                                            </p>
-                                        </div>
-                                        <div className="rounded-lg bg-gray-800/70 px-3 py-2">
-                                            <p className="text-xs text-gray-500">
-                                                Contact
-                                            </p>
-                                            <p className="text-sm text-gray-200">
-                                                {displayPhone}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )
-                        ) : activePanel === "Dashboard" ? (
-                            dashLoading ? (
-                                <div className="flex-1 flex items-center justify-center py-8">
-                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
-                                </div>
-                            ) : (
-                                <div className="flex-1 flex flex-col gap-4 mt-3">
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-xs text-gray-400">
-                                            Latest Inspection
-                                        </p>
-                                        <p className="text-xs font-medium text-gray-300">
-                                            {dashStats.latestTime}
-                                        </p>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {[
-                                            {
-                                                title: "Inspected",
-                                                value: dashStats.totalInspected,
-                                            },
-                                            {
-                                                title: "Defects",
-                                                value: dashStats.totalDefects,
-                                            },
-                                            {
-                                                title: "Good",
-                                                value: dashStats.good,
-                                            },
-                                            {
-                                                title: "Critical",
-                                                value: dashStats.critical,
-                                            },
-                                        ].map((item) => (
-                                            <div
-                                                key={item.title}
-                                                className="rounded-lg bg-gray-800/70 p-3"
-                                            >
-                                                <p className="text-xs text-gray-500">
-                                                    {item.title}
-                                                </p>
-                                                <p className="text-xl font-semibold text-white mt-1">
-                                                    {item.value}
-                                                </p>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div className="rounded-lg bg-gray-800/70 p-3">
-                                        <p className="text-xs text-gray-500 mb-3">
-                                            Condition Breakdown
-                                        </p>
-                                        <div className="space-y-3">
-                                            {conditionBreakdown.map((item) => {
-                                                const pct =
-                                                    dashStats.thermalSamples > 0
-                                                        ? Math.round(
-                                                              (item.value /
-                                                                  dashStats.thermalSamples) *
-                                                                  100,
-                                                          )
-                                                        : 0;
-                                                return (
-                                                    <div key={item.label}>
-                                                        <div className="flex justify-between text-xs mb-1">
-                                                            <span className="text-gray-400">
-                                                                {item.label}{" "}
-                                                                <span className="text-gray-600">
-                                                                    (
-                                                                    {item.range}
-                                                                    )
-                                                                </span>
-                                                            </span>
-                                                            <span className="text-gray-300">
-                                                                {item.value} (
-                                                                {pct}%)
-                                                            </span>
-                                                        </div>
-                                                        <div className="w-full h-1.5 bg-gray-700 rounded-full">
-                                                            <div
-                                                                className={`h-1.5 rounded-full ${item.color}`}
-                                                                style={{
-                                                                    width: `${pct}%`,
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <div className="rounded-lg bg-orange-950/50 border border-orange-800/30 p-2">
-                                            <p className="text-[10px] text-orange-400 uppercase">
-                                                Peak Surface Temp
-                                            </p>
-                                            <p className="text-sm font-bold text-orange-300">
-                                                {dashStats.peakMaxTemp !== null
-                                                    ? `${dashStats.peakMaxTemp}°C`
-                                                    : "—"}
-                                            </p>
-                                        </div>
-                                        <div className="rounded-lg bg-amber-950/50 border border-amber-800/30 p-2">
-                                            <p className="text-[10px] text-amber-400 uppercase">
-                                                Avg Surface Temp
-                                            </p>
-                                            <p className="text-sm font-bold text-amber-300">
-                                                {dashStats.avgMaxTemp !== null
-                                                    ? `${dashStats.avgMaxTemp}°C`
-                                                    : "—"}
-                                            </p>
-                                        </div>
-                                        <div className="rounded-lg bg-gray-800/70 p-2 flex flex-col justify-between">
-                                            <p className="text-[10px] text-gray-500 uppercase">
-                                                Defect Rate
-                                            </p>
-                                            <p className="text-sm font-bold text-white">
-                                                {defectRate}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )
-                        ) : activePanel === "AI Models" ? (
-                            <div className="flex-1 flex flex-col gap-4 mt-3">
-                                {[
-                                    {
-                                        id: "model-01",
-                                        name: "AsphaltGuard Model v1",
-                                        modelType: "YOLOv26n",
-                                        dateTrained: "February 18, 2026",
-                                        f1Score: 0.81,
-                                        description:
-                                            "First model trained on the pothole dataset.",
-                                        confusionMatrix: [
-                                            [84, 7],
-                                            [5, 91],
-                                        ],
-                                        trainingTime: "4h 12m",
-                                        status: "Ready for deployment review",
-                                    },
-                                ].map((model) => (
-                                    <div
-                                        key={model.id}
-                                        className="flex flex-col gap-3"
-                                    >
-                                        <p className="text-sm font-medium text-white">
-                                            {model.name}
-                                        </p>
-                                        <p className="text-xs text-gray-400">
-                                            {model.description}
-                                        </p>
-
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div className="rounded-lg bg-gray-800/70 p-2">
-                                                <p className="text-[10px] text-gray-500 uppercase">
-                                                    Model Type
-                                                </p>
-                                                <p className="text-sm font-medium text-white">
-                                                    {model.modelType}
-                                                </p>
-                                            </div>
-                                            <div className="rounded-lg bg-gray-800/70 p-2">
-                                                <p className="text-[10px] text-gray-500 uppercase">
-                                                    Date Trained
-                                                </p>
-                                                <p className="text-sm font-medium text-white">
-                                                    {model.dateTrained}
-                                                </p>
-                                            </div>
-                                            <div className="rounded-lg bg-gray-800/70 p-2">
-                                                <p className="text-[10px] text-gray-500 uppercase">
-                                                    Training Time
-                                                </p>
-                                                <p className="text-sm font-medium text-white">
-                                                    {model.trainingTime}
-                                                </p>
-                                            </div>
-                                            <div className="rounded-lg bg-gray-800/70 p-2">
-                                                <p className="text-[10px] text-gray-500 uppercase">
-                                                    Status
-                                                </p>
-                                                <p className="text-sm font-medium text-white">
-                                                    {model.status}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div className="rounded-lg bg-emerald-950/50 border border-emerald-800/30 p-3 flex items-center justify-between">
-                                            <p className="text-xs text-emerald-400 uppercase">
-                                                F1 Score
-                                            </p>
-                                            <p className="text-2xl font-bold text-emerald-300">
-                                                {model.f1Score.toFixed(2)}
-                                            </p>
-                                        </div>
-
-                                        <div className="rounded-lg bg-gray-800/70 p-3">
-                                            <p className="text-[10px] text-gray-500 uppercase mb-2">
-                                                Confusion Matrix
-                                            </p>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                {model.confusionMatrix
-                                                    .flat()
-                                                    .map((value, i) => (
-                                                        <div
-                                                            key={i}
-                                                            className="flex items-center justify-center rounded-lg bg-gray-700/50 py-3"
-                                                        >
-                                                            <span className="text-sm font-semibold text-white">
-                                                                {value}
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : activePanel === "Users" ? (
-                            usersLoading ? (
-                                <div className="flex-1 flex items-center justify-center py-8">
-                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
-                                </div>
-                            ) : (
-                                <div className="flex-1 flex flex-col gap-3 mt-3">
-                                    <p className="text-xs text-gray-500">
-                                        {usersList.length} {usersList.length === 1 ? "user" : "users"} registered
+                                captures.length === 0 ? (
+                                    <p className="text-sm text-gray-400 mt-3">
+                                        No captures with GPS data found.
                                     </p>
-                                    {usersList.length === 0 ? (
-                                        <p className="text-sm text-gray-400">No users found.</p>
-                                    ) : (
-                                        <div className="flex flex-col gap-2">
-                                            {usersList.map((user) => (
-                                                <div
-                                                    key={user.user_id}
-                                                    className="rounded-lg bg-gray-800/70 p-3"
+                                ) : (
+                                    <div className="flex-1 flex flex-col gap-2 mt-3">
+                                        {captures.map((cap) => {
+                                            const temp = cap.thermal_max_c;
+                                            const conditionLabel =
+                                                temp === null
+                                                    ? "Unknown"
+                                                    : temp <= 50
+                                                      ? "Good"
+                                                      : temp <= 60
+                                                        ? "Fair"
+                                                        : temp <= 70
+                                                          ? "Deteriorating"
+                                                          : "Critical";
+                                            const conditionColor =
+                                                temp === null
+                                                    ? "bg-gray-600"
+                                                    : temp <= 50
+                                                      ? "bg-emerald-500"
+                                                      : temp <= 60
+                                                        ? "bg-yellow-500"
+                                                        : temp <= 70
+                                                          ? "bg-orange-500"
+                                                          : "bg-red-500";
+
+                                            return (
+                                                <button
+                                                    key={cap.id}
+                                                    onClick={() =>
+                                                        openCaptureDetail(cap)
+                                                    }
+                                                    className="rounded-lg bg-gray-800/70 p-3 text-left hover:bg-gray-700/70 transition-colors cursor-pointer"
                                                 >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="h-9 w-9 rounded-full bg-gray-700 flex items-center justify-center text-xs font-semibold text-white shrink-0">
-                                                            {(user.full_name?.trim() || user.username?.trim() || "?")
-                                                                .split(/\s+/)
-                                                                .slice(0, 2)
-                                                                .map((p) => p[0]?.toUpperCase() ?? "")
-                                                                .join("")}
-                                                        </div>
-                                                        <div className="min-w-0 flex-1">
-                                                            <p className="text-sm font-medium text-white truncate">
-                                                                {user.full_name?.trim() || user.username?.trim() || "—"}
-                                                            </p>
-                                                            <p className="text-[11px] text-gray-400 truncate">
-                                                                {user.email?.trim() || "—"}
-                                                            </p>
-                                                        </div>
-                                                        <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-gray-700 text-gray-300 shrink-0">
-                                                            {user.role?.trim() || "—"}
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <p className="text-sm font-medium text-white">
+                                                            {getCaptureTitleByTime(
+                                                                cap.captured_at,
+                                                            )}
+                                                        </p>
+                                                        <span
+                                                            className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full text-white ${conditionColor}`}
+                                                        >
+                                                            {conditionLabel}
                                                         </span>
                                                     </div>
+                                                    <div className="flex items-center justify-between text-xs text-gray-400">
+                                                        <span>
+                                                            {temp !== null
+                                                                ? `${temp}°C`
+                                                                : "—"}
+                                                        </span>
+                                                        <span>
+                                                            {formatPhilippineDateTime(
+                                                                cap.captured_at,
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[10px] text-gray-500 mt-1">
+                                                        {cap.gps_latitude.toFixed(
+                                                            6,
+                                                        )}
+                                                        ,{" "}
+                                                        {cap.gps_longitude.toFixed(
+                                                            6,
+                                                        )}
+                                                    </p>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )
+                            ) : activePanel === "Account" ? (
+                                accountLoading ? (
+                                    <div className="flex-1 flex items-center justify-center py-8">
+                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
+                                    </div>
+                                ) : (
+                                    <div className="flex-1 flex flex-col gap-4 mt-3">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="h-16 w-16 rounded-full bg-gray-700 flex items-center justify-center text-lg font-semibold text-white">
+                                                {profileInitials}
+                                            </div>
+                                            <p className="text-sm font-medium text-white">
+                                                {displayName}
+                                            </p>
+                                            <p className="text-xs text-gray-400">
+                                                {displayRole}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div className="rounded-lg bg-gray-800/70 px-3 py-2">
+                                                <p className="text-xs text-gray-500">
+                                                    Email
+                                                </p>
+                                                <p className="text-sm text-gray-200 break-all">
+                                                    {displayEmail}
+                                                </p>
+                                            </div>
+                                            <div className="rounded-lg bg-gray-800/70 px-3 py-2">
+                                                <p className="text-xs text-gray-500">
+                                                    Username
+                                                </p>
+                                                <p className="text-sm text-gray-200">
+                                                    {displayUsername}
+                                                </p>
+                                            </div>
+                                            <div className="rounded-lg bg-gray-800/70 px-3 py-2">
+                                                <p className="text-xs text-gray-500">
+                                                    Contact
+                                                </p>
+                                                <p className="text-sm text-gray-200">
+                                                    {displayPhone}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            ) : activePanel === "Dashboard" ? (
+                                dashLoading ? (
+                                    <div className="flex-1 flex items-center justify-center py-8">
+                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
+                                    </div>
+                                ) : (
+                                    <div className="flex-1 flex flex-col gap-4 mt-3">
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-xs text-gray-400">
+                                                Latest Inspection
+                                            </p>
+                                            <p className="text-xs font-medium text-gray-300">
+                                                {dashStats.latestTime}
+                                            </p>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {[
+                                                {
+                                                    title: "Inspected",
+                                                    value: dashStats.totalInspected,
+                                                },
+                                                {
+                                                    title: "Defects",
+                                                    value: dashStats.totalDefects,
+                                                },
+                                                {
+                                                    title: "Good",
+                                                    value: dashStats.good,
+                                                },
+                                                {
+                                                    title: "Critical",
+                                                    value: dashStats.critical,
+                                                },
+                                            ].map((item) => (
+                                                <div
+                                                    key={item.title}
+                                                    className="rounded-lg bg-gray-800/70 p-3"
+                                                >
+                                                    <p className="text-xs text-gray-500">
+                                                        {item.title}
+                                                    </p>
+                                                    <p className="text-xl font-semibold text-white mt-1">
+                                                        {item.value}
+                                                    </p>
                                                 </div>
                                             ))}
                                         </div>
-                                    )}
+
+                                        <div className="rounded-lg bg-gray-800/70 p-3">
+                                            <p className="text-xs text-gray-500 mb-3">
+                                                Condition Breakdown
+                                            </p>
+                                            <div className="space-y-3">
+                                                {conditionBreakdown.map(
+                                                    (item) => {
+                                                        const pct =
+                                                            dashStats.thermalSamples >
+                                                            0
+                                                                ? Math.round(
+                                                                      (item.value /
+                                                                          dashStats.thermalSamples) *
+                                                                          100,
+                                                                  )
+                                                                : 0;
+                                                        return (
+                                                            <div
+                                                                key={item.label}
+                                                            >
+                                                                <div className="flex justify-between text-xs mb-1">
+                                                                    <span className="text-gray-400">
+                                                                        {
+                                                                            item.label
+                                                                        }{" "}
+                                                                        <span className="text-gray-600">
+                                                                            (
+                                                                            {
+                                                                                item.range
+                                                                            }
+                                                                            )
+                                                                        </span>
+                                                                    </span>
+                                                                    <span className="text-gray-300">
+                                                                        {
+                                                                            item.value
+                                                                        }{" "}
+                                                                        ({pct}%)
+                                                                    </span>
+                                                                </div>
+                                                                <div className="w-full h-1.5 bg-gray-700 rounded-full">
+                                                                    <div
+                                                                        className={`h-1.5 rounded-full ${item.color}`}
+                                                                        style={{
+                                                                            width: `${pct}%`,
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    },
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <div className="rounded-lg bg-orange-950/50 border border-orange-800/30 p-2">
+                                                <p className="text-[10px] text-orange-400 uppercase">
+                                                    Peak Surface Temp
+                                                </p>
+                                                <p className="text-sm font-bold text-orange-300">
+                                                    {dashStats.peakMaxTemp !==
+                                                    null
+                                                        ? `${dashStats.peakMaxTemp}°C`
+                                                        : "—"}
+                                                </p>
+                                            </div>
+                                            <div className="rounded-lg bg-amber-950/50 border border-amber-800/30 p-2">
+                                                <p className="text-[10px] text-amber-400 uppercase">
+                                                    Avg Surface Temp
+                                                </p>
+                                                <p className="text-sm font-bold text-amber-300">
+                                                    {dashStats.avgMaxTemp !==
+                                                    null
+                                                        ? `${dashStats.avgMaxTemp}°C`
+                                                        : "—"}
+                                                </p>
+                                            </div>
+                                            <div className="rounded-lg bg-gray-800/70 p-2 flex flex-col justify-between">
+                                                <p className="text-[10px] text-gray-500 uppercase">
+                                                    Defect Rate
+                                                </p>
+                                                <p className="text-sm font-bold text-white">
+                                                    {defectRate}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            ) : activePanel === "AI Models" ? (
+                                <div className="flex-1 flex flex-col gap-4 mt-3">
+                                    {[
+                                        {
+                                            id: "model-01",
+                                            name: "AsphaltGuard Model v1",
+                                            modelType: "YOLOv26n",
+                                            dateTrained: "February 18, 2026",
+                                            f1Score: 0.81,
+                                            description:
+                                                "First model trained on the pothole dataset.",
+                                            confusionMatrix: [
+                                                [84, 7],
+                                                [5, 91],
+                                            ],
+                                            trainingTime: "4h 12m",
+                                            status: "Ready for deployment review",
+                                        },
+                                    ].map((model) => (
+                                        <div
+                                            key={model.id}
+                                            className="flex flex-col gap-3"
+                                        >
+                                            <p className="text-sm font-medium text-white">
+                                                {model.name}
+                                            </p>
+                                            <p className="text-xs text-gray-400">
+                                                {model.description}
+                                            </p>
+
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div className="rounded-lg bg-gray-800/70 p-2">
+                                                    <p className="text-[10px] text-gray-500 uppercase">
+                                                        Model Type
+                                                    </p>
+                                                    <p className="text-sm font-medium text-white">
+                                                        {model.modelType}
+                                                    </p>
+                                                </div>
+                                                <div className="rounded-lg bg-gray-800/70 p-2">
+                                                    <p className="text-[10px] text-gray-500 uppercase">
+                                                        Date Trained
+                                                    </p>
+                                                    <p className="text-sm font-medium text-white">
+                                                        {model.dateTrained}
+                                                    </p>
+                                                </div>
+                                                <div className="rounded-lg bg-gray-800/70 p-2">
+                                                    <p className="text-[10px] text-gray-500 uppercase">
+                                                        Training Time
+                                                    </p>
+                                                    <p className="text-sm font-medium text-white">
+                                                        {model.trainingTime}
+                                                    </p>
+                                                </div>
+                                                <div className="rounded-lg bg-gray-800/70 p-2">
+                                                    <p className="text-[10px] text-gray-500 uppercase">
+                                                        Status
+                                                    </p>
+                                                    <p className="text-sm font-medium text-white">
+                                                        {model.status}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="rounded-lg bg-emerald-950/50 border border-emerald-800/30 p-3 flex items-center justify-between">
+                                                <p className="text-xs text-emerald-400 uppercase">
+                                                    F1 Score
+                                                </p>
+                                                <p className="text-2xl font-bold text-emerald-300">
+                                                    {model.f1Score.toFixed(2)}
+                                                </p>
+                                            </div>
+
+                                            <div className="rounded-lg bg-gray-800/70 p-3">
+                                                <p className="text-[10px] text-gray-500 uppercase mb-2">
+                                                    Confusion Matrix
+                                                </p>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {model.confusionMatrix
+                                                        .flat()
+                                                        .map((value, i) => (
+                                                            <div
+                                                                key={i}
+                                                                className="flex items-center justify-center rounded-lg bg-gray-700/50 py-3"
+                                                            >
+                                                                <span className="text-sm font-semibold text-white">
+                                                                    {value}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            )
-                        ) : (
-                            <>
-                                <p className="text-sm text-gray-400 mb-4">
-                                    Content for {activePanel}
-                                </p>
-                                <div className="flex-1 rounded-xl bg-gray-800/50 p-4">
-                                    <p className="text-sm text-gray-500">
-                                        Panel content goes here...
+                            ) : activePanel === "Users" ? (
+                                usersLoading ? (
+                                    <div className="flex-1 flex items-center justify-center py-8">
+                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
+                                    </div>
+                                ) : (
+                                    <div className="flex-1 flex flex-col gap-3 mt-3">
+                                        <p className="text-xs text-gray-500">
+                                            {usersList.length}{" "}
+                                            {usersList.length === 1
+                                                ? "user"
+                                                : "users"}{" "}
+                                            registered
+                                        </p>
+                                        {usersList.length === 0 ? (
+                                            <p className="text-sm text-gray-400">
+                                                No users found.
+                                            </p>
+                                        ) : (
+                                            <div className="flex flex-col gap-2">
+                                                {usersList.map((user) => (
+                                                    <div
+                                                        key={user.user_id}
+                                                        className="rounded-lg bg-gray-800/70 p-3"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-9 w-9 rounded-full bg-gray-700 flex items-center justify-center text-xs font-semibold text-white shrink-0">
+                                                                {(
+                                                                    user.full_name?.trim() ||
+                                                                    user.username?.trim() ||
+                                                                    "?"
+                                                                )
+                                                                    .split(
+                                                                        /\s+/,
+                                                                    )
+                                                                    .slice(0, 2)
+                                                                    .map(
+                                                                        (p) =>
+                                                                            p[0]?.toUpperCase() ??
+                                                                            "",
+                                                                    )
+                                                                    .join("")}
+                                                            </div>
+                                                            <div className="min-w-0 flex-1">
+                                                                <p className="text-sm font-medium text-white truncate">
+                                                                    {user.full_name?.trim() ||
+                                                                        user.username?.trim() ||
+                                                                        "—"}
+                                                                </p>
+                                                                <p className="text-[11px] text-gray-400 truncate">
+                                                                    {user.email?.trim() ||
+                                                                        "—"}
+                                                                </p>
+                                                            </div>
+                                                            <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-gray-700 text-gray-300 shrink-0">
+                                                                {user.role?.trim() ||
+                                                                    "—"}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            ) : (
+                                <>
+                                    <p className="text-sm text-gray-400 mb-4">
+                                        Content for {activePanel}
                                     </p>
-                                </div>
-                            </>
-                        )}
+                                    <div className="flex-1 rounded-xl bg-gray-800/50 p-4">
+                                        <p className="text-sm text-gray-500">
+                                            Panel content goes here...
+                                        </p>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
             )}
 
             {/* Live Feed Panel */}
             <div
                 className={`absolute top-4 right-4 z-998 w-96 max-h-[calc(100vh-2rem)] rounded-2xl bg-gray-900/95 backdrop-blur-md shadow-2xl overflow-y-auto transition-opacity duration-200 ease-in-out ${
-                    selectedCapture && detailVisible ? "opacity-0 pointer-events-none" : "opacity-100"
+                    selectedCapture && detailVisible
+                        ? "opacity-0 pointer-events-none"
+                        : "opacity-100"
                 }`}
             >
                 <div className="p-4 flex flex-col gap-3">
                     <div className="flex items-center gap-2">
                         <Video size={18} className="text-blue-400" />
-                        <h2 className="text-sm font-semibold text-white">Live Feed</h2>
+                        <h2 className="text-sm font-semibold text-white">
+                            Live Feed
+                        </h2>
                     </div>
 
                     <div>
-                        <p className="text-[10px] text-gray-500 uppercase mb-1">Camera</p>
+                        <p className="text-[10px] text-gray-500 uppercase mb-1">
+                            Camera
+                        </p>
                         <div className="rounded-xl overflow-hidden bg-black aspect-video">
                             <img
                                 src="https://stream.asphaltguard.online/video/camera"
@@ -893,7 +1020,9 @@ export default function MapView() {
                     </div>
 
                     <div>
-                        <p className="text-[10px] text-gray-500 uppercase mb-1">Thermal Camera</p>
+                        <p className="text-[10px] text-gray-500 uppercase mb-1">
+                            Thermal Camera
+                        </p>
                         <div className="rounded-xl overflow-hidden bg-black aspect-video">
                             <img
                                 src="https://stream.asphaltguard.online/video/thermal"
@@ -905,63 +1034,99 @@ export default function MapView() {
 
                     <div className="grid grid-cols-3 gap-2">
                         <div className="rounded-lg bg-blue-950/50 border border-blue-800/30 p-2">
-                            <p className="text-[10px] text-blue-400 uppercase">Min Temp</p>
+                            <p className="text-[10px] text-blue-400 uppercase">
+                                Min Temp
+                            </p>
                             <p className="text-sm font-bold text-blue-300">
-                                {thermalRaw ? `${thermalRaw.min_c.toFixed(1)}°C` : "—"}
+                                {thermalRaw
+                                    ? `${thermalRaw.min_c.toFixed(1)}°C`
+                                    : "—"}
                             </p>
                         </div>
                         <div className="rounded-lg bg-red-950/50 border border-red-800/30 p-2">
-                            <p className="text-[10px] text-red-400 uppercase">Max Temp</p>
+                            <p className="text-[10px] text-red-400 uppercase">
+                                Max Temp
+                            </p>
                             <p className="text-sm font-bold text-red-300">
-                                {thermalRaw ? `${thermalRaw.max_c.toFixed(1)}°C` : "—"}
+                                {thermalRaw
+                                    ? `${thermalRaw.max_c.toFixed(1)}°C`
+                                    : "—"}
                             </p>
                         </div>
                         <div className="rounded-lg bg-amber-950/50 border border-amber-800/30 p-2">
-                            <p className="text-[10px] text-amber-400 uppercase">Mean Temp</p>
+                            <p className="text-[10px] text-amber-400 uppercase">
+                                Mean Temp
+                            </p>
                             <p className="text-sm font-bold text-amber-300">
-                                {thermalRaw ? `${thermalRaw.mean_c.toFixed(1)}°C` : "—"}
+                                {thermalRaw
+                                    ? `${thermalRaw.mean_c.toFixed(1)}°C`
+                                    : "—"}
                             </p>
                         </div>
                     </div>
 
                     <button
-                        onClick={() => { if (gpsLastValid) setFlyTarget(gpsLastValid); }}
+                        onClick={() => {
+                            if (gpsLastValid) setFlyTarget(gpsLastValid);
+                        }}
                         disabled={!gpsLastValid}
                         className={`rounded-lg bg-gray-800/70 p-3 w-full text-left transition-all duration-150 ${
-                            gpsLastValid ? "hover:bg-gray-700/70 hover:scale-[1.02] hover:shadow-lg hover:ring-1 hover:ring-gray-600/50 cursor-pointer active:scale-[0.98]" : "opacity-60"
+                            gpsLastValid
+                                ? "hover:bg-gray-700/70 hover:scale-[1.02] hover:shadow-lg hover:ring-1 hover:ring-gray-600/50 cursor-pointer active:scale-[0.98]"
+                                : "opacity-60"
                         }`}
                     >
                         <div className="flex items-center gap-2 mb-2">
                             <MapPin size={14} className="text-gray-400" />
-                            <p className="text-xs text-gray-400 uppercase font-medium">GPS Status</p>
+                            <p className="text-xs text-gray-400 uppercase font-medium">
+                                GPS Status
+                            </p>
                         </div>
                         <div className="flex items-center gap-2 mb-2">
-                            <span className={`inline-block w-2 h-2 rounded-full ${
-                                gpsData === null ? "bg-red-400" :
-                                gpsData.valid ? "bg-emerald-400 animate-pulse" :
-                                "bg-yellow-400 animate-pulse"
-                            }`} />
-                            <span className={`text-xs font-medium ${
-                                gpsData === null ? "text-red-400" :
-                                gpsData.valid ? "text-emerald-400" :
-                                "text-yellow-400"
-                            }`}>
-                                {gpsData === null ? "No Connection" :
-                                 gpsData.valid ? "GPS Fix Active" :
-                                 "No Fix"}
+                            <span
+                                className={`inline-block w-2 h-2 rounded-full ${
+                                    gpsData === null
+                                        ? "bg-red-400"
+                                        : gpsData.valid
+                                          ? "bg-emerald-400 animate-pulse"
+                                          : "bg-yellow-400 animate-pulse"
+                                }`}
+                            />
+                            <span
+                                className={`text-xs font-medium ${
+                                    gpsData === null
+                                        ? "text-red-400"
+                                        : gpsData.valid
+                                          ? "text-emerald-400"
+                                          : "text-yellow-400"
+                                }`}
+                            >
+                                {gpsData === null
+                                    ? "No Connection"
+                                    : gpsData.valid
+                                      ? "GPS Fix Active"
+                                      : "No Fix"}
                             </span>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <p className="text-[10px] text-gray-500">Latitude</p>
+                                <p className="text-[10px] text-gray-500">
+                                    Latitude
+                                </p>
                                 <p className="text-sm font-mono text-white">
-                                    {gpsData?.valid ? gpsData.latitude.toFixed(6) : "—"}
+                                    {gpsData?.valid
+                                        ? gpsData.latitude.toFixed(6)
+                                        : "—"}
                                 </p>
                             </div>
                             <div>
-                                <p className="text-[10px] text-gray-500">Longitude</p>
+                                <p className="text-[10px] text-gray-500">
+                                    Longitude
+                                </p>
                                 <p className="text-sm font-mono text-white">
-                                    {gpsData?.valid ? gpsData.longitude.toFixed(6) : "—"}
+                                    {gpsData?.valid
+                                        ? gpsData.longitude.toFixed(6)
+                                        : "—"}
                                 </p>
                             </div>
                         </div>
@@ -973,7 +1138,9 @@ export default function MapView() {
             {selectedCapture && (
                 <div
                     className={`absolute top-4 right-4 z-999 w-96 max-h-[calc(100vh-2rem)] rounded-2xl bg-gray-900/95 backdrop-blur-md shadow-2xl overflow-y-auto transition-opacity duration-200 ease-in-out ${
-                        detailVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+                        detailVisible
+                            ? "opacity-100"
+                            : "opacity-0 pointer-events-none"
                     }`}
                 >
                     <div className="p-5 flex flex-col gap-4">
@@ -982,10 +1149,13 @@ export default function MapView() {
                                 onClick={closeCaptureDetail}
                                 className="p-1 rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
                             >
-                                <ChevronLeft size={20} className="text-gray-400" />
+                                <ChevronLeft
+                                    size={20}
+                                    className="text-gray-400"
+                                />
                             </button>
                             <h2 className="text-lg font-semibold text-white">
-                                Capture #{selectedCapture.id}
+                                Capture
                             </h2>
                         </div>
 
@@ -1001,30 +1171,46 @@ export default function MapView() {
 
                         {selectedCapture.thermal_grid && (
                             <div>
-                                <p className="text-xs text-gray-500 uppercase mb-2">Thermal View</p>
+                                <p className="text-xs text-gray-500 uppercase mb-2">
+                                    Thermal View
+                                </p>
                                 <div className="rounded-xl overflow-hidden">
-                                    <ThermalGrid grid={selectedCapture.thermal_grid} />
+                                    <ThermalGrid
+                                        grid={selectedCapture.thermal_grid}
+                                    />
                                 </div>
                             </div>
                         )}
 
                         <div className="grid grid-cols-2 gap-2">
                             <div className="rounded-lg bg-red-950/50 border border-red-800/30 p-2">
-                                <p className="text-[10px] text-red-400 uppercase">Max Temp</p>
+                                <p className="text-[10px] text-red-400 uppercase">
+                                    Max Temp
+                                </p>
                                 <p className="text-sm font-bold text-red-300">
-                                    {selectedCapture.thermal_max_c !== null ? `${selectedCapture.thermal_max_c}°C` : "—"}
+                                    {selectedCapture.thermal_max_c !== null
+                                        ? `${selectedCapture.thermal_max_c}°C`
+                                        : "—"}
                                 </p>
                             </div>
                             <div className="rounded-lg bg-blue-950/50 border border-blue-800/30 p-2">
-                                <p className="text-[10px] text-blue-400 uppercase">Min Temp</p>
+                                <p className="text-[10px] text-blue-400 uppercase">
+                                    Min Temp
+                                </p>
                                 <p className="text-sm font-bold text-blue-300">
-                                    {selectedCapture.thermal_min_c !== null ? `${selectedCapture.thermal_min_c}°C` : "—"}
+                                    {selectedCapture.thermal_min_c !== null
+                                        ? `${selectedCapture.thermal_min_c}°C`
+                                        : "—"}
                                 </p>
                             </div>
                             <div className="rounded-lg bg-amber-950/50 border border-amber-800/30 p-2">
-                                <p className="text-[10px] text-amber-400 uppercase">Mean Temp</p>
+                                <p className="text-[10px] text-amber-400 uppercase">
+                                    Mean Temp
+                                </p>
                                 <p className="text-sm font-bold text-amber-300">
-                                    {selectedCapture.thermal_mean_c !== null ? `${selectedCapture.thermal_mean_c}°C` : "—"}
+                                    {selectedCapture.thermal_mean_c !== null
+                                        ? `${selectedCapture.thermal_mean_c}°C`
+                                        : "—"}
                                 </p>
                             </div>
                         </div>
@@ -1032,12 +1218,19 @@ export default function MapView() {
                         <div className="rounded-lg bg-gray-800/70 p-3 space-y-1">
                             <div className="flex justify-between text-xs">
                                 <span className="text-gray-500">Captured</span>
-                                <span className="text-gray-300">{formatPhilippineDateTime(selectedCapture.captured_at)}</span>
+                                <span className="text-gray-300">
+                                    {formatPhilippineDateTime(
+                                        selectedCapture.captured_at,
+                                    )}
+                                </span>
                             </div>
                             <div className="flex justify-between text-xs">
-                                <span className="text-gray-500">Coordinates</span>
+                                <span className="text-gray-500">
+                                    Coordinates
+                                </span>
                                 <span className="text-gray-300">
-                                    {selectedCapture.gps_latitude.toFixed(6)}, {selectedCapture.gps_longitude.toFixed(6)}
+                                    {selectedCapture.gps_latitude.toFixed(6)},{" "}
+                                    {selectedCapture.gps_longitude.toFixed(6)}
                                 </span>
                             </div>
                         </div>
@@ -1055,6 +1248,8 @@ export default function MapView() {
             >
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    maxZoom={25}
+                    maxNativeZoom={19}
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 />
                 <Marker position={PSU_CENTER} icon={psuIcon}>
@@ -1070,7 +1265,11 @@ export default function MapView() {
                         position={gpsLastValid}
                         icon={gpsData?.valid ? gpsActiveIcon : gpsStaleIcon}
                     >
-                        <Popup>{gpsData?.valid ? "GPS Device (Active)" : "GPS Device (Last Known)"}</Popup>
+                        <Popup>
+                            {gpsData?.valid
+                                ? "GPS Device (Active)"
+                                : "GPS Device (Last Known)"}
+                        </Popup>
                     </Marker>
                 )}
                 {captures.map((cap) => (
