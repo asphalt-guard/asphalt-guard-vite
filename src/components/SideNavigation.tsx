@@ -1,12 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     LayoutDashboard,
+    Map,
     Radio,
     User,
     Users,
     Cpu,
     History,
-    Settings,
 } from "lucide-react";
 
 interface NavItem {
@@ -27,7 +27,17 @@ function SideNavigation({
 }: SideNavigationProps) {
     const [activeItem, setActiveItem] = useState(activePath);
 
+    useEffect(() => {
+        setActiveItem(activePath);
+    }, [activePath]);
+
     const navItems: NavItem[] = [
+        {
+            id: "map",
+            label: "Map",
+            icon: <Map size={20} />,
+            path: "/map",
+        },
         {
             id: "live-feed",
             label: "Live Feed",
@@ -64,12 +74,6 @@ function SideNavigation({
             icon: <History size={20} />,
             path: "/history",
         },
-        {
-            id: "settings",
-            label: "Settings",
-            icon: <Settings size={20} />,
-            path: "/settings",
-        },
     ];
 
     const handleClick = (item: NavItem) => {
@@ -78,19 +82,22 @@ function SideNavigation({
     };
 
     return (
-        <nav className="flex flex-col gap-3 p-5 bg-white rounded-lg shadow-md border border-[#e0e0e0] h-full w-64">
+        <nav className="flex flex-col gap-2">
             {navItems.map((item) => (
                 <button
                     key={item.id}
+                    type="button"
                     onClick={() => handleClick(item)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 whitespace-normal ${
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer ${
                         activeItem === item.id
-                            ? "bg-black text-white shadow-md"
-                            : "text-gray-700 hover:bg-gray-100 hover:text-black border border-transparent hover:border-gray-300"
+                            ? "bg-blue-600 text-white shadow-lg"
+                            : "bg-gray-800/70 text-gray-300 hover:bg-gray-700/70 hover:text-white"
                     }`}
                 >
-                    <span className="flex items-center">{item.icon}</span>
-                    <span className="font-medium text-sm">{item.label}</span>
+                    <span className="flex shrink-0 items-center">
+                        {item.icon}
+                    </span>
+                    <span>{item.label}</span>
                 </button>
             ))}
         </nav>

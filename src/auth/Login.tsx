@@ -1,136 +1,122 @@
-import { LogInIcon } from "lucide-react"
-import { useEffect, useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { logIn, supabase } from "../lib/supabase"
+import { LogInIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import AuthLayout, { inputClassName, labelClassName } from "./AuthLayout";
+import { logIn, supabase } from "../lib/supabase";
 
 function Login() {
-	const navigate = useNavigate()
+    const navigate = useNavigate();
 
-	const [loading, setLoading] = useState(true)
-	const [message, setMessage] = useState("")
+    const [loading, setLoading] = useState(true);
+    const [message, setMessage] = useState("");
 
-	const [credentials, setCredentials] = useState({ email: "", password: "" })
+    const [credentials, setCredentials] = useState({ email: "", password: "" });
 
-	// @ts-expect-error yes
-	const handleChangeForm = (e) => {
-		const { name, value } = e.target
-		setCredentials((prev) => ({
-			...prev,
-			[name]: value,
-		}))
-	}
+    // @ts-expect-error yes
+    const handleChangeForm = (e) => {
+        const { name, value } = e.target;
+        setCredentials((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
 
-	const handleLogin = async () => {
-		setMessage("")
-		setLoading(true)
-		if (await logIn(credentials)) {
-			navigate("/map")
-		} else {
-			setLoading(false)
-			setMessage("Username or password is wrong")
-		}
-	}
+    const handleLogin = async () => {
+        setMessage("");
+        setLoading(true);
+        if (await logIn(credentials)) {
+            navigate("/dashboard");
+        } else {
+            setLoading(false);
+            setMessage("Username or password is wrong");
+        }
+    };
 
-	useEffect(() => {
-		const initAuth = async () => {
-			const {
-				data: { session },
-			} = await supabase.auth.getSession()
+    useEffect(() => {
+        const initAuth = async () => {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
 
-			if (session) navigate("/map")
+            if (session) navigate("/dashboard");
 
-			setLoading(false)
-		}
+            setLoading(false);
+        };
 
-		initAuth()
-	}, [])
+        initAuth();
+    }, [navigate]);
 
-	return (
-		<div className="flex min-h-screen font-sans bg-gray-50 flex-col">
-			<div className="flex justify-between items-center p-5 border-b border-b-[#cccccc] shadow bg-white">
-				<div className="flex gap-2.5">
-					<img
-						src="/asphaltguard-favicon.svg"
-						alt="AsphaltGuard logo"
-						className="h-6 w-6"
-					/>
-					<p>AsphaltGuard</p>
-				</div>
-				<Link to="/signup" className="underline">
-					Create Account
-				</Link>
-			</div>
-			<div className="flex flex-1 justify-center items-center p-2.5">
-				<div className="flex flex-col justify-center items-center gap-5 border border-[#cccccc] p-10 rounded-[10px] shadow-2xl">
-					<div className="p-2.5 border border-[#CCCCCC] rounded">
-						<LogInIcon />
-					</div>
-					<div className="flex flex-col justify-center items-center">
-						<p className="text-2xl">Login with email</p>
-						<p className="text-gray-600 text-center">
-							Only admins can access important data
-						</p>
-					</div>
-					<div className="flex flex-col justify-center items-center gap-2.5 w-full">
-						<div className="flex flex-col gap-1 w-full">
-							<label
-								htmlFor="email"
-								className="text-sm font-medium text-gray-700"
-							>
-								📧 Email
-							</label>
-							<input
-								id="email"
-								type="text"
-								name="email"
-								value={credentials.email}
-								onChange={handleChangeForm}
-								className="border border-[#cccccc] rounded-[10px] p-2.5 w-full"
-							/>
-						</div>
-						<div className="flex flex-col gap-1 w-full">
-							<label
-								htmlFor="password"
-								className="text-sm font-medium text-gray-700"
-							>
-								🔒 Password
-							</label>
-							<input
-								id="password"
-								type="password"
-								name="password"
-								value={credentials.password}
-								onChange={handleChangeForm}
-								className="border border-[#cccccc] rounded-[10px] p-2.5 w-full"
-							/>
-						</div>
-						<div className="flex justify-between w-full">
-							<p className="text-[0.7rem] text-[red]">{message}</p>
-							<Link
-								to="/signup"
-								className="text-[0.7rem] underline text-gray-600"
-							>
-								Forgot Password?
-							</Link>
-						</div>
-					</div>
-					<div className="border-b border-b-[#cccccc] w-full"></div>
+    return (
+        <AuthLayout
+            loading={loading}
+            headerLink={{ to: "/signup", label: "Create Account" }}
+        >
+            <div className="flex flex-col items-center gap-6">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-gray-700 bg-gray-800/70 text-gray-300">
+                    <LogInIcon size={22} aria-hidden />
+                </div>
 
-					<button
-						onClick={handleLogin}
-						className="p-2.5 bg-black rounded-[10px] cursor-pointer w-full hover:bg-white text-white hover:text-black border"
-					>
-						<p className="">Continue</p>
-					</button>
-				</div>
-			</div>
-			{loading && (
-				<div className="fixed inset-0 flex items-center justify-center bg-white/30 backdrop-blur-[2px] z-50">
-					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
-				</div>
-			)}
-		</div>
-	)
+                <div className="flex flex-col items-center gap-1 text-center">
+                    <h1 className="text-xl font-semibold text-white">
+                        Login with email
+                    </h1>
+                    <p className="text-sm text-gray-400">
+                        Only admins can access important data
+                    </p>
+                </div>
+
+                <div className="flex w-full flex-col gap-3">
+                    <div className="flex flex-col gap-1">
+                        <label htmlFor="email" className={labelClassName}>
+                            Email
+                        </label>
+                        <input
+                            id="email"
+                            type="text"
+                            name="email"
+                            value={credentials.email}
+                            onChange={handleChangeForm}
+                            className={inputClassName}
+                            autoComplete="email"
+                        />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <label htmlFor="password" className={labelClassName}>
+                            Password
+                        </label>
+                        <input
+                            id="password"
+                            type="password"
+                            name="password"
+                            value={credentials.password}
+                            onChange={handleChangeForm}
+                            className={inputClassName}
+                            autoComplete="current-password"
+                        />
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs text-red-400">{message}</p>
+                        <Link
+                            to="/signup"
+                            className="shrink-0 text-xs text-gray-500 transition-colors hover:text-gray-300"
+                        >
+                            Forgot Password?
+                        </Link>
+                    </div>
+                </div>
+
+                <div className="w-full border-t border-gray-800" />
+
+                <button
+                    type="button"
+                    onClick={handleLogin}
+                    className="w-full cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+                >
+                    Continue
+                </button>
+            </div>
+        </AuthLayout>
+    );
 }
 
-export default Login
+export default Login;

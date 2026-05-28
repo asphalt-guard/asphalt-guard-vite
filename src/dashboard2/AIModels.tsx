@@ -1,9 +1,21 @@
-import SideNavigation from "../components/SideNavigation";
-import { useNavigate } from "react-router-dom";
+import DashboardShell from "./DashboardShell";
 
 function AIModels() {
-    const navigate = useNavigate();
     const models = [
+        {
+            id: "model-placeholder",
+            name: "AsphaltGuard Model v2",
+            modelType: "TBD",
+            dateTrained: "—",
+            f1Score: 0,
+            description: "Placeholder for the next training run.",
+            confusionMatrix: [
+                [0, 0],
+                [0, 0],
+            ],
+            trainingTime: "—",
+            status: "Queued for training",
+        },
         {
             id: "model-01",
             name: "AsphaltGuard Model v1",
@@ -15,187 +27,95 @@ function AIModels() {
                 [84, 7],
                 [5, 91],
             ],
-            workingImage: "potholes630.jpg",
-            futureInfo: "4h 12m",
+            trainingTime: "4h 12m",
+            status: "Ready for deployment review",
         },
     ];
 
-    const handleNavigation = (path: string) => {
-        navigate(path);
-    };
-
     return (
-        <div className="flex h-screen overflow-hidden font-sans bg-gray-50 flex-col p-5">
-            {/* Header */}
-            <div
-                className="flex justify-between items-center p-5 rounded-lg shadow-md border border-[#e0e0e0] bg-white"
-                style={{ margin: "0 10px 10px 10px" }}
-            >
-                <div className="flex gap-2.5">
-                    <img
-                        src="/asphaltguard-favicon.svg"
-                        alt="AsphaltGuard logo"
-                        className="h-6 w-6"
-                    />
-                    <p>AsphaltGuard</p>
-                </div>
-                <p>AI Models</p>
-            </div>
+        <DashboardShell title="AI Models" activePath="models">
+            <div className="flex flex-col gap-4">
+                <p className="text-xs text-gray-500">
+                    {models.length} {models.length === 1 ? "model" : "models"}
+                </p>
 
-            {/* Main Content Area */}
-            <div className="flex flex-1 gap-5 min-h-0">
-                {/* Navigation Sidebar */}
-                <div style={{ margin: "10px", minWidth: "fit-content" }}>
-                    <SideNavigation
-                        onNavigate={handleNavigation}
-                        activePath="models"
-                    />
-                </div>
+                {models.map((model) => (
+                    <div
+                        key={model.id}
+                        className="flex flex-col gap-3 rounded-xl border border-gray-700/50 bg-gray-800/70 p-4 shadow-lg"
+                    >
+                        <p className="text-sm font-medium text-white">
+                            {model.name}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                            {model.description}
+                        </p>
 
-                {/* Main Content */}
-                <div
-                    className="flex-1 min-h-0 bg-white rounded-lg shadow-md border border-[#e0e0e0] p-5 overflow-hidden"
-                    style={{ margin: "10px" }}
-                >
-                    <div className="h-full flex flex-col">
-                        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-                            <h2 className="text-xl font-semibold text-gray-800">
-                                Model Dashboard
-                            </h2>
-                            <div className="flex items-center gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => navigate("/demo/yolo26")}
-                                    className="h-9 rounded-lg border border-gray-900 bg-gray-900 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-gray-800"
-                                >
-                                    Try
-                                </button>
-                                <span className="text-sm text-gray-500">
-                                    {models.length} models
-                                </span>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="rounded-lg bg-gray-800/70 p-2">
+                                <p className="text-[10px] uppercase text-gray-500">
+                                    Model Type
+                                </p>
+                                <p className="text-sm font-medium text-white">
+                                    {model.modelType}
+                                </p>
+                            </div>
+                            <div className="rounded-lg bg-gray-800/70 p-2">
+                                <p className="text-[10px] uppercase text-gray-500">
+                                    Date Trained
+                                </p>
+                                <p className="text-sm font-medium text-white">
+                                    {model.dateTrained}
+                                </p>
+                            </div>
+                            <div className="rounded-lg bg-gray-800/70 p-2">
+                                <p className="text-[10px] uppercase text-gray-500">
+                                    Training Time
+                                </p>
+                                <p className="text-sm font-medium text-white">
+                                    {model.trainingTime}
+                                </p>
+                            </div>
+                            <div className="rounded-lg bg-gray-800/70 p-2">
+                                <p className="text-[10px] uppercase text-gray-500">
+                                    Status
+                                </p>
+                                <p className="text-sm font-medium text-white">
+                                    {model.status}
+                                </p>
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto pr-1 space-y-5">
-                            {models.map((model) => (
-                                <div
-                                    key={model.id}
-                                    className="border border-gray-200 rounded-2xl bg-linear-to-b from-white to-gray-50 overflow-hidden"
-                                >
-                                    <div className="border-b border-gray-200 px-5 py-4">
-                                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                                            <div>
-                                                <h3 className="text-lg font-semibold text-gray-800">
-                                                    {model.name}
-                                                </h3>
-                                            </div>
-                                        </div>
+                        <div className="flex items-center justify-between rounded-lg border border-emerald-800/30 bg-emerald-950/50 p-3">
+                            <p className="text-xs uppercase text-emerald-400">
+                                F1 Score
+                            </p>
+                            <p className="text-2xl font-bold text-emerald-300">
+                                {model.f1Score.toFixed(2)}
+                            </p>
+                        </div>
+
+                        <div className="rounded-lg bg-gray-800/70 p-3">
+                            <p className="mb-2 text-[10px] uppercase text-gray-500">
+                                Confusion Matrix
+                            </p>
+                            <div className="grid grid-cols-2 gap-2">
+                                {model.confusionMatrix.flat().map((value, i) => (
+                                    <div
+                                        key={i}
+                                        className="flex items-center justify-center rounded-lg bg-gray-700/50 py-3"
+                                    >
+                                        <span className="text-sm font-semibold text-white">
+                                            {value}
+                                        </span>
                                     </div>
-
-                                    <div className="p-5 grid grid-cols-1 xl:grid-cols-12 gap-5">
-                                        <div className="xl:col-span-5">
-                                            <div className="bg-white border border-gray-200 rounded-xl p-3 h-full transition-all duration-200 hover:shadow-sm hover:border-gray-300 hover:-translate-y-0.5">
-                                                <img
-                                                    src={model.workingImage}
-                                                    alt={`${model.name} preview`}
-                                                    className="w-full h-56 object-cover rounded-lg"
-                                                />
-                                                <p className="text-xs text-gray-500 mt-3 px-1">
-                                                    Model working preview image
-                                                </p>
-                                                <p className="text-sm text-gray-600 mt-2 px-1">
-                                                    {model.description}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div className="xl:col-span-7 space-y-4">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                <div className="bg-white border border-gray-200 rounded-lg p-3 transition-all duration-200 hover:shadow-sm hover:border-gray-300 hover:-translate-y-0.5">
-                                                    <p className="text-xs uppercase tracking-wide text-gray-500">
-                                                        Model Type
-                                                    </p>
-                                                    <p className="text-sm font-medium text-gray-800 mt-1">
-                                                        {model.modelType}
-                                                    </p>
-                                                </div>
-                                                <div className="bg-white border border-gray-200 rounded-lg p-3 transition-all duration-200 hover:shadow-sm hover:border-gray-300 hover:-translate-y-0.5">
-                                                    <p className="text-xs uppercase tracking-wide text-gray-500">
-                                                        Date Trained
-                                                    </p>
-                                                    <p className="text-sm font-medium text-gray-800 mt-1">
-                                                        {model.dateTrained}
-                                                    </p>
-                                                </div>
-                                                <div className="bg-white border border-gray-200 rounded-lg p-3 transition-all duration-200 hover:shadow-sm hover:border-gray-300 hover:-translate-y-0.5">
-                                                    <p className="text-xs uppercase tracking-wide text-gray-500">
-                                                        Time Training
-                                                    </p>
-                                                    <p className="text-sm font-medium text-gray-800 mt-1">
-                                                        {model.futureInfo}
-                                                    </p>
-                                                </div>
-                                                <div className="bg-white border border-gray-200 rounded-lg p-3 transition-all duration-200 hover:shadow-sm hover:border-gray-300 hover:-translate-y-0.5">
-                                                    <p className="text-xs uppercase tracking-wide text-gray-500">
-                                                        Status
-                                                    </p>
-                                                    <p className="text-sm font-medium text-gray-800 mt-1">
-                                                        Ready for deployment
-                                                        review
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex flex-col md:flex-row gap-3">
-                                                <div className="bg-white border border-gray-200 rounded-xl p-4 md:w-1/2 transition-all duration-200 hover:shadow-sm hover:border-gray-300 hover:-translate-y-0.5">
-                                                    <p className="text-xs uppercase tracking-wide text-gray-500 mb-3">
-                                                        Confusion Matrix
-                                                    </p>
-                                                    <div className="grid grid-cols-2 grid-rows-2 gap-3 h-32 w-full">
-                                                        {model.confusionMatrix.map(
-                                                            (row, rowIndex) =>
-                                                                row.map(
-                                                                    (
-                                                                        value,
-                                                                        colIndex,
-                                                                    ) => (
-                                                                        <div
-                                                                            key={`${model.id}-${rowIndex}-${colIndex}`}
-                                                                            className="h-full w-full flex items-center justify-center rounded-lg bg-gray-100 text-base font-semibold text-gray-700"
-                                                                        >
-                                                                            {
-                                                                                value
-                                                                            }
-                                                                        </div>
-                                                                    ),
-                                                                ),
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div className="md:w-1/2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 flex flex-col justify-center transition-all duration-200 hover:shadow-sm hover:border-emerald-300 hover:-translate-y-0.5">
-                                                    <p className="text-xs uppercase tracking-wide text-emerald-700">
-                                                        F1 Score
-                                                    </p>
-                                                    <p className="text-4xl font-bold text-emerald-700 mt-1">
-                                                        {model.f1Score.toFixed(
-                                                            2,
-                                                        )}
-                                                    </p>
-                                                    <p className="text-xs text-emerald-700/80 mt-2">
-                                                        Highlighted performance
-                                                        metric
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     </div>
-                </div>
+                ))}
             </div>
-        </div>
+        </DashboardShell>
     );
 }
 

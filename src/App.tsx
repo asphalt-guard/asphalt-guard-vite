@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom"
+import { Routes, Route, Navigate } from "react-router-dom"
 import { LastLoginTracker } from "./components/LastLoginTracker"
 import YOLO26 from "./demo/YOLO26"
 import Login from "./auth/Login"
@@ -11,7 +11,6 @@ import Account from "./dashboard2/Account"
 import Users from "./dashboard2/Users"
 import AIModels from "./dashboard2/AIModels"
 import History from "./dashboard2/History"
-import Settings from "./dashboard2/Settings"
 import MapView from "./testing/MapView"
 
 function App() {
@@ -19,7 +18,7 @@ function App() {
 		<>
 			<LastLoginTracker />
 			<Routes>
-				<Route path="/" element={<Login />} />
+				<Route path="/" element={<Navigate to="/dashboard" replace />} />
 				<Route path="/demo/yolo26" element={<YOLO26 />} />
 				<Route path="/login" element={<Login />} />
 				<Route path="/signup" element={<SignUp />} />
@@ -30,7 +29,6 @@ function App() {
 				<Route path="/users" element={<Users />} />
 				<Route path="/ai-models" element={<AIModels />} />
 				<Route path="/history" element={<History />} />
-				<Route path="/settings" element={<Settings />} />
 				{/* Testing routes */}
 				<Route path="/map" element={<MapView />} />
 				{/* Dashboard v1 routes (legacy) */}
