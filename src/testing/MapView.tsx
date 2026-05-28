@@ -807,6 +807,7 @@ export default function MapView() {
             <MapContainer
                 center={PSU_CENTER}
                 zoom={16}
+                maxZoom={25}
                 className="absolute inset-0 z-0 h-full w-full"
                 zoomControl={false}
                 attributionControl={false}
