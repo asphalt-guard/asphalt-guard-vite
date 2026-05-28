@@ -54,14 +54,20 @@ function makePin(svgKey: string, pinColor: string) {
 const psuIcon = makePin("school", "#1e293b");
 const userLocIcon = makePin("user", "#2563eb");
 const alertIcon = makePin("circleAlert", "#dc2626");
+const fairIcon = makePin("circle", "#eab308");
 const goodIcon = makePin("circle", "#16a34a");
 
 function getCaptureIcon(cap: CaptureRow) {
-    const isAlert =
-        (cap.thermal_max_c !== null && cap.thermal_max_c >= 51) ||
-        cap.yolo_crack === true ||
-        cap.yolo_pothole === true;
-    return isAlert ? alertIcon : goodIcon;
+    if (cap.yolo_crack === true || cap.yolo_pothole === true) {
+        return alertIcon;
+    }
+
+    if (cap.thermal_max_c !== null) {
+        if (cap.thermal_max_c > 60) return alertIcon;
+        if (cap.thermal_max_c > 50) return fairIcon;
+    }
+
+    return goodIcon;
 }
 
 function FlyToUser() {
@@ -86,7 +92,7 @@ function FlyToPosition({ position }: { position: [number, number] | null }) {
 
     useEffect(() => {
         if (position) {
-            map.flyTo(position, 18, { duration: 1.2 });
+            map.flyTo(position, map.getZoom(), { duration: 1.2 });
         }
     }, [map, position]);
 
@@ -114,6 +120,19 @@ function inferno(t: number): string {
 
 const TEMP_MIN = 0;
 const TEMP_MAX = 100;
+const PH_TIMEZONE = "Asia/Manila";
+
+function formatPhilippineDateTime(isoDate: string): string {
+    return new Date(isoDate).toLocaleString([], {
+        timeZone: PH_TIMEZONE,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+    });
+}
 
 function ThermalGrid({ grid }: { grid: number[][] }) {
     const rows = grid.length;
@@ -434,7 +453,7 @@ export default function MapView() {
                                                 </div>
                                                 <div className="flex items-center justify-between text-xs text-gray-400">
                                                     <span>{temp !== null ? `${temp}°C` : "—"}</span>
-                                                    <span>{new Date(cap.captured_at).toLocaleString()}</span>
+                                                    <span>{formatPhilippineDateTime(cap.captured_at)}</span>
                                                 </div>
                                                 <p className="text-[10px] text-gray-500 mt-1">
                                                     {cap.gps_latitude.toFixed(6)}, {cap.gps_longitude.toFixed(6)}
@@ -791,7 +810,7 @@ export default function MapView() {
                         <div className="rounded-lg bg-gray-800/70 p-3 space-y-1">
                             <div className="flex justify-between text-xs">
                                 <span className="text-gray-500">Captured</span>
-                                <span className="text-gray-300">{new Date(selectedCapture.captured_at).toLocaleString()}</span>
+                                <span className="text-gray-300">{formatPhilippineDateTime(selectedCapture.captured_at)}</span>
                             </div>
                             <div className="flex justify-between text-xs">
                                 <span className="text-gray-500">Coordinates</span>

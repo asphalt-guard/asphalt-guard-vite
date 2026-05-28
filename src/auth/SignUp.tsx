@@ -43,7 +43,7 @@ function SignUp() {
 		setLoading(true)
 		// Simulate API call
 		if (await createNewUser(formData, password)) {
-			navigate("/dashboard")
+			navigate("/map")
 		} else {
 			setLoading(false)
 		}
@@ -55,7 +55,7 @@ function SignUp() {
 				data: { session },
 			} = await supabase.auth.getSession()
 
-			if (session) navigate("/dashboard")
+			if (session) navigate("/map")
 		}
 
 		initAuth()
