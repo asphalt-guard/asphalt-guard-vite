@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
-import { Road, LayoutDashboard, User as UserIcon, Users, Cpu, ChevronLeft } from "lucide-react";
+import { Road, LayoutDashboard, User as UserIcon, Users, Cpu, ChevronLeft, MapPin, Video } from "lucide-react";
 import { getUserByUID, supabase } from "../lib/supabase";
 import "leaflet/dist/leaflet.css";
 
@@ -37,6 +38,7 @@ const SVG_ICONS: Record<string, string> = {
     user: `<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>`,
     circleAlert: `<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>`,
     circle: `<circle cx="12" cy="12" r="10"/>`,
+    drone: `<path d="M10 2h4"/><path d="m21 7-2-2"/><path d="m5 7 2-2"/><path d="M12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M4.5 18.5 7 17l2.5 1.5"/><path d="M14.5 18.5 17 17l2.5 1.5"/><path d="M7 17v-3a5 5 0 0 1 10 0v3"/>`,
 };
 
 function makePin(svgKey: string, pinColor: string) {
@@ -56,6 +58,8 @@ const userLocIcon = makePin("user", "#2563eb");
 const alertIcon = makePin("circleAlert", "#dc2626");
 const fairIcon = makePin("circle", "#eab308");
 const goodIcon = makePin("circle", "#16a34a");
+const gpsActiveIcon = makePin("drone", "#2563eb");
+const gpsStaleIcon = makePin("drone", "#6b7280");
 
 function getCaptureIcon(cap: CaptureRow) {
     if (cap.yolo_crack === true || cap.yolo_pothole === true) {
@@ -190,6 +194,16 @@ const BUTTONS = [
 ];
 
 export default function MapView() {
+    const navigate = useNavigate();
+    const [authChecked, setAuthChecked] = useState(false);
+
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!session) navigate("/login", { replace: true });
+            else setAuthChecked(true);
+        });
+    }, [navigate]);
+
     const [userLocation, setUserLocation] = useState<[number, number] | null>(
         null,
     );
@@ -229,9 +243,14 @@ export default function MapView() {
     });
 
     const [captures, setCaptures] = useState<CaptureRow[]>([]);
+    const [usersList, setUsersList] = useState<UsersRow[]>([]);
+    const [usersLoading, setUsersLoading] = useState(true);
     const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null);
     const [selectedCapture, setSelectedCapture] = useState<CaptureRow | null>(null);
     const [detailVisible, setDetailVisible] = useState(false);
+    const [gpsData, setGpsData] = useState<{ latitude: number; longitude: number; valid: boolean } | null>(null);
+    const [gpsLastValid, setGpsLastValid] = useState<[number, number] | null>(null);
+    const [thermalRaw, setThermalRaw] = useState<{ min_c: number; max_c: number; mean_c: number } | null>(null);
 
     const openCaptureDetail = (cap: CaptureRow) => {
         setSelectedCapture(cap);
@@ -249,6 +268,40 @@ export default function MapView() {
             setUserLocation([pos.coords.latitude, pos.coords.longitude]);
         });
     }, []);
+
+    useEffect(() => {
+        let active = true;
+        const pollGps = async () => {
+            try {
+                const res = await fetch("https://stream.asphaltguard.online/gps");
+                if (!res.ok) throw new Error("fetch failed");
+                const data = await res.json();
+                if (active) {
+                    setGpsData(data);
+                    if (data.valid) {
+                        setGpsLastValid([data.latitude, data.longitude]);
+                    }
+                }
+            } catch {
+                if (active) setGpsData(null);
+            }
+        };
+        const pollThermal = async () => {
+            try {
+                const res = await fetch("https://stream.asphaltguard.online/api/thermal/raw");
+                if (!res.ok) throw new Error("fetch failed");
+                const data = await res.json();
+                if (active && !data.error) setThermalRaw(data);
+            } catch {
+                if (active) setThermalRaw(null);
+            }
+        };
+        pollGps();
+        pollThermal();
+        const interval = setInterval(() => { pollGps(); pollThermal(); }, 2000);
+        return () => { active = false; clearInterval(interval); };
+    }, []);
+
 
     useEffect(() => {
         const loadCaptures = async () => {
@@ -283,69 +336,67 @@ export default function MapView() {
     }, []);
 
     useEffect(() => {
-        const loadDashboard = async () => {
-            setDashLoading(true);
-            const { data: scans } = await supabase
-                .from("scan_history")
-                .select("*")
-                .order("created_at", { ascending: false });
-
-            type ScanRow = {
-                pothole_count?: number | null;
-                created_at: string;
-                max_temp?: number | null;
-            };
-
-            if (scans && scans.length > 0) {
-                let totalDefects = 0;
-                let good = 0,
-                    fair = 0,
-                    deteriorating = 0,
-                    critical = 0;
-                const thermalValues: number[] = [];
-
-                (scans as ScanRow[]).forEach((scan) => {
-                    totalDefects += scan.pothole_count || 0;
-                    if (typeof scan.max_temp === "number") {
-                        thermalValues.push(scan.max_temp);
-                        if (scan.max_temp <= 50) good++;
-                        else if (scan.max_temp <= 60) fair++;
-                        else if (scan.max_temp <= 70) deteriorating++;
-                        else critical++;
-                    }
-                });
-
-                const latest = new Date((scans as ScanRow[])[0].created_at);
-                const formattedTime = `${latest.toLocaleDateString()} ${latest.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
-                const peakMaxTemp =
-                    thermalValues.length > 0
-                        ? Math.max(...thermalValues)
-                        : null;
-                const avgMaxTemp =
-                    thermalValues.length > 0
-                        ? Math.round(
-                              thermalValues.reduce((a, b) => a + b, 0) /
-                                  thermalValues.length,
-                          )
-                        : null;
-
-                setDashStats({
-                    totalInspected: scans.length,
-                    totalDefects,
-                    good,
-                    fair,
-                    deteriorating,
-                    critical,
-                    latestTime: formattedTime,
-                    peakMaxTemp,
-                    avgMaxTemp,
-                    thermalSamples: thermalValues.length,
-                });
-            }
-            setDashLoading(false);
+        const loadUsers = async () => {
+            setUsersLoading(true);
+            const { data } = await supabase
+                .from("users")
+                .select("user_id, full_name, username, email, role")
+                .order("username", { ascending: true });
+            if (data) setUsersList(data as UsersRow[]);
+            setUsersLoading(false);
         };
-        loadDashboard();
+        loadUsers();
     }, []);
+
+    useEffect(() => {
+        if (captures.length === 0) {
+            setDashLoading(false);
+            return;
+        }
+
+        let totalDefects = 0;
+        let good = 0, fair = 0, deteriorating = 0, critical = 0;
+        const thermalValues: number[] = [];
+
+        captures.forEach((cap) => {
+            if (cap.yolo_crack === true || cap.yolo_pothole === true) {
+                totalDefects++;
+            }
+            if (typeof cap.thermal_max_c === "number") {
+                thermalValues.push(cap.thermal_max_c);
+                if (cap.thermal_max_c <= 50) good++;
+                else if (cap.thermal_max_c <= 60) fair++;
+                else if (cap.thermal_max_c <= 70) deteriorating++;
+                else critical++;
+            }
+        });
+
+        const latest = new Date(captures[0].captured_at);
+        const formattedTime = `${latest.toLocaleDateString()} ${latest.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+        const peakMaxTemp =
+            thermalValues.length > 0 ? Math.max(...thermalValues) : null;
+        const avgMaxTemp =
+            thermalValues.length > 0
+                ? Math.round(
+                      thermalValues.reduce((a, b) => a + b, 0) /
+                          thermalValues.length,
+                  )
+                : null;
+
+        setDashStats({
+            totalInspected: captures.length,
+            totalDefects,
+            good,
+            fair,
+            deteriorating,
+            critical,
+            latestTime: formattedTime,
+            peakMaxTemp,
+            avgMaxTemp,
+            thermalSamples: thermalValues.length,
+        });
+        setDashLoading(false);
+    }, [captures]);
 
     const defectRate =
         dashStats.totalInspected > 0
@@ -398,6 +449,14 @@ export default function MapView() {
     const displayRole = accountUser?.role?.trim() || "—";
     const displayPhone = accountUser?.contact_number?.trim() || "—";
     const displayUsername = accountUser?.username?.trim() || "—";
+
+    if (!authChecked) {
+        return (
+            <div className="flex h-screen w-screen items-center justify-center bg-gray-950">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
+            </div>
+        );
+    }
 
     return (
         <div className="relative h-screen w-screen overflow-hidden">
@@ -748,6 +807,51 @@ export default function MapView() {
                                     </div>
                                 ))}
                             </div>
+                        ) : activePanel === "Users" ? (
+                            usersLoading ? (
+                                <div className="flex-1 flex items-center justify-center py-8">
+                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex flex-col gap-3 mt-3">
+                                    <p className="text-xs text-gray-500">
+                                        {usersList.length} {usersList.length === 1 ? "user" : "users"} registered
+                                    </p>
+                                    {usersList.length === 0 ? (
+                                        <p className="text-sm text-gray-400">No users found.</p>
+                                    ) : (
+                                        <div className="flex flex-col gap-2">
+                                            {usersList.map((user) => (
+                                                <div
+                                                    key={user.user_id}
+                                                    className="rounded-lg bg-gray-800/70 p-3"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-9 w-9 rounded-full bg-gray-700 flex items-center justify-center text-xs font-semibold text-white shrink-0">
+                                                            {(user.full_name?.trim() || user.username?.trim() || "?")
+                                                                .split(/\s+/)
+                                                                .slice(0, 2)
+                                                                .map((p) => p[0]?.toUpperCase() ?? "")
+                                                                .join("")}
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="text-sm font-medium text-white truncate">
+                                                                {user.full_name?.trim() || user.username?.trim() || "—"}
+                                                            </p>
+                                                            <p className="text-[11px] text-gray-400 truncate">
+                                                                {user.email?.trim() || "—"}
+                                                            </p>
+                                                        </div>
+                                                        <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-gray-700 text-gray-300 shrink-0">
+                                                            {user.role?.trim() || "—"}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )
                         ) : (
                             <>
                                 <p className="text-sm text-gray-400 mb-4">
@@ -764,6 +868,106 @@ export default function MapView() {
                 </div>
             </div>
             )}
+
+            {/* Live Feed Panel */}
+            <div
+                className={`absolute top-4 right-4 z-998 w-96 max-h-[calc(100vh-2rem)] rounded-2xl bg-gray-900/95 backdrop-blur-md shadow-2xl overflow-y-auto transition-opacity duration-200 ease-in-out ${
+                    selectedCapture && detailVisible ? "opacity-0 pointer-events-none" : "opacity-100"
+                }`}
+            >
+                <div className="p-4 flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                        <Video size={18} className="text-blue-400" />
+                        <h2 className="text-sm font-semibold text-white">Live Feed</h2>
+                    </div>
+
+                    <div>
+                        <p className="text-[10px] text-gray-500 uppercase mb-1">Camera</p>
+                        <div className="rounded-xl overflow-hidden bg-black aspect-video">
+                            <img
+                                src="https://stream.asphaltguard.online/video/camera"
+                                alt="Camera Feed"
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <p className="text-[10px] text-gray-500 uppercase mb-1">Thermal Camera</p>
+                        <div className="rounded-xl overflow-hidden bg-black aspect-video">
+                            <img
+                                src="https://stream.asphaltguard.online/video/thermal"
+                                alt="Thermal Feed"
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2">
+                        <div className="rounded-lg bg-blue-950/50 border border-blue-800/30 p-2">
+                            <p className="text-[10px] text-blue-400 uppercase">Min Temp</p>
+                            <p className="text-sm font-bold text-blue-300">
+                                {thermalRaw ? `${thermalRaw.min_c.toFixed(1)}°C` : "—"}
+                            </p>
+                        </div>
+                        <div className="rounded-lg bg-red-950/50 border border-red-800/30 p-2">
+                            <p className="text-[10px] text-red-400 uppercase">Max Temp</p>
+                            <p className="text-sm font-bold text-red-300">
+                                {thermalRaw ? `${thermalRaw.max_c.toFixed(1)}°C` : "—"}
+                            </p>
+                        </div>
+                        <div className="rounded-lg bg-amber-950/50 border border-amber-800/30 p-2">
+                            <p className="text-[10px] text-amber-400 uppercase">Mean Temp</p>
+                            <p className="text-sm font-bold text-amber-300">
+                                {thermalRaw ? `${thermalRaw.mean_c.toFixed(1)}°C` : "—"}
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={() => { if (gpsLastValid) setFlyTarget(gpsLastValid); }}
+                        disabled={!gpsLastValid}
+                        className={`rounded-lg bg-gray-800/70 p-3 w-full text-left transition-all duration-150 ${
+                            gpsLastValid ? "hover:bg-gray-700/70 hover:scale-[1.02] hover:shadow-lg hover:ring-1 hover:ring-gray-600/50 cursor-pointer active:scale-[0.98]" : "opacity-60"
+                        }`}
+                    >
+                        <div className="flex items-center gap-2 mb-2">
+                            <MapPin size={14} className="text-gray-400" />
+                            <p className="text-xs text-gray-400 uppercase font-medium">GPS Status</p>
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className={`inline-block w-2 h-2 rounded-full ${
+                                gpsData === null ? "bg-red-400" :
+                                gpsData.valid ? "bg-emerald-400 animate-pulse" :
+                                "bg-yellow-400 animate-pulse"
+                            }`} />
+                            <span className={`text-xs font-medium ${
+                                gpsData === null ? "text-red-400" :
+                                gpsData.valid ? "text-emerald-400" :
+                                "text-yellow-400"
+                            }`}>
+                                {gpsData === null ? "No Connection" :
+                                 gpsData.valid ? "GPS Fix Active" :
+                                 "No Fix"}
+                            </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>
+                                <p className="text-[10px] text-gray-500">Latitude</p>
+                                <p className="text-sm font-mono text-white">
+                                    {gpsData?.valid ? gpsData.latitude.toFixed(6) : "—"}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] text-gray-500">Longitude</p>
+                                <p className="text-sm font-mono text-white">
+                                    {gpsData?.valid ? gpsData.longitude.toFixed(6) : "—"}
+                                </p>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </div>
 
             {/* Capture Detail Panel */}
             {selectedCapture && (
@@ -859,6 +1063,14 @@ export default function MapView() {
                 {userLocation && (
                     <Marker position={userLocation} icon={userLocIcon}>
                         <Popup>Your Location</Popup>
+                    </Marker>
+                )}
+                {gpsLastValid && (
+                    <Marker
+                        position={gpsLastValid}
+                        icon={gpsData?.valid ? gpsActiveIcon : gpsStaleIcon}
+                    >
+                        <Popup>{gpsData?.valid ? "GPS Device (Active)" : "GPS Device (Last Known)"}</Popup>
                     </Marker>
                 )}
                 {captures.map((cap) => (
