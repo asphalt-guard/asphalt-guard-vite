@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AsphaltGuard — Software Discussion Guide</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface2: #243044;
+      --text: #e8edf4;
+      --muted: #8b9cb3;
+      --accent: #3b82f6;
+      --accent-dim: #1d4ed8;
+      --good: #10b981;
+      --warn: #f59e0b;
+      --border: #2d3a4f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    h1 { font-size: 1.75rem; margin: 0 0 0.35rem; font-weight: 700; }
+    .subtitle { color: var(--muted); margin: 0; font-size: 0.95rem; }
+    h2 {
+      font-size: 1.15rem;
+      margin: 2rem 0 0.75rem;
+      color: var(--accent);
+      font-weight: 600;
+      scroll-margin-top: 1rem;
+    }
+    h3 { font-size: 0.95rem; margin: 1.25rem 0 0.5rem; color: #c5d4e8; }
+    p { margin: 0.5rem 0; }
+    ul, ol { margin: 0.4rem 0 0.8rem; padding-left: 1.35rem; }
+    li { margin: 0.25rem 0; }
+    a { color: var(--accent); }
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+    }
+    .toc ol { margin: 0; }
+    .toc a { text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.15rem;
+      margin: 0.75rem 0;
+    }
+    .card h3 { margin-top: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin: 0.5rem 0 1rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.45rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-weight: 500; width: 28%; }
+    code, .path {
+      font-family: "Cascadia Code", "Consolas", monospace;
+      font-size: 0.85em;
+      background: var(--surface2);
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+    }
+    .talk {
+      border-left: 3px solid var(--accent);
+      padding: 0.5rem 0 0.5rem 1rem;
+      margin: 0.75rem 0;
+      color: #b8c9de;
+      font-style: italic;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.15em 0.45em;
+      border-radius: 4px;
+      margin-right: 0.35rem;
+      font-style: normal;
+      font-weight: 600;
+    }
+    .tag-live { background: #064e3b; color: #6ee7b7; }
+    .tag-legacy { background: #422006; color: #fcd34d; }
+    .tag-demo { background: #312e81; color: #c4b5fd; }
+    .tag-api { background: #1e3a5f; color: #93c5fd; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>AsphaltGuard — Discussion Guide</h1>
+      <p class="subtitle">
+        Talking points for explaining this repository: stack, structure, data flow, and integrations.
+        Generated from <code>asphalt-guard-vite</code>.
+      </p>
+    </header>
+
+    <nav class="toc" aria-label="Contents">
+      <strong>Contents</strong>
+      <ol>
+        <li><a href="#pitch">Elevator pitch</a></li>
+        <li><a href="#stack">Technology stack</a></li>
+        <li><a href="#structure">Folder structure</a></li>
+        <li><a href="#architecture">App architecture</a></li>
+        <li><a href="#auth">Authentication &amp; users</a></li>
+        <li><a href="#data">Supabase data model</a></li>
+        <li><a href="#external">External services &amp; APIs</a></li>
+        <li><a href="#features">Features by screen</a></li>
+        <li><a href="#components">Shared components</a></li>
+        <li><a href="#domain">Domain logic (thermal &amp; defects)</a></li>
+        <li><a href="#deploy">Deployment &amp; config</a></li>
+        <li><a href="#dev">Development workflow</a></li>
+        <li><a href="#prompts">Discussion prompts</a></li>
+      </ol>
+    </nav>
+
+    <!-- 1 -->
+    <h2 id="pitch">1. Elevator pitch</h2>
+    <p>
+      <strong>AsphaltGuard</strong> is a web dashboard for monitoring road/asphalt condition using data from an RC car or field rig:
+      GPS position, thermal camera readings, visible-light captures, and YOLO-based crack/pothole detection.
+      Operators sign in, view live video feeds, inspect historical captures on a map, and see aggregate stats (defect counts, thermal condition bands).
+    </p>
+    <p class="talk">
+      “It’s a React SPA backed by Supabase for auth and persistence, with real-time telemetry polled from our streaming server at stream.asphaltguard.online.”
+    </p>
+
+    <!-- 2 -->
+    <h2 id="stack">2. Technology stack</h2>
+    <table>
+      <tr><th>Layer</th><th>What’s used</th></tr>
+      <tr><td>Runtime / UI</td><td><strong>React 19</strong>, <strong>TypeScript 5.9</strong>, <strong>React Router 7</strong></td></tr>
+      <tr><td>Build</td><td><strong>Vite 7</strong> with <code>@vitejs/plugin-react-swc</code> (fast refresh via SWC)</td></tr>
+      <tr><td>Styling</td><td><strong>Tailwind CSS v4</strong> via <code>@tailwindcss/vite</code>; custom font <em>Google Sans Code</em> in <code>src/style.css</code></td></tr>
+      <tr><td>Icons</td><td><strong>lucide-react</strong></td></tr>
+      <tr><td>Maps</td><td><strong>Leaflet</strong> + <strong>react-leaflet</strong>; tiles from <strong>OpenStreetMap</strong></td></tr>
+      <tr><td>Backend-as-a-service</td><td><strong>Supabase</strong> (<code>@supabase/supabase-js</code>) — Auth, Postgres tables, Storage buckets</td></tr>
+      <tr><td>Env</td><td><code>dotenv</code> (dev); Vite env vars <code>VITE_SUPABASE_URL</code>, <code>VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY</code></td></tr>
+      <tr><td>Lint</td><td><strong>ESLint 9</strong> flat config (<code>eslint.config.js</code>), TypeScript ESLint, React Hooks plugin</td></tr>
+      <tr><td>Hosting</td><td><strong>Netlify</strong> (<code>netlify.toml</code> SPA redirect) and/or <strong>Render</strong> (<code>render.yaml</code> rewrite)</td></tr>
+    </table>
+    <p><strong>npm scripts:</strong> <code>dev</code> (Vite + host), <code>build</code> (tsc + vite build), <code>preview</code>, <code>lint</code>.</p>
+
+    <!-- 3 -->
+    <h2 id="structure">3. Folder structure</h2>
+    <table>
+      <tr><th>Path</th><th>Purpose</th></tr>
+      <tr><td><code>index.html</code></td><td>SPA shell; loads <code>src/main.tsx</code></td></tr>
+      <tr><td><code>src/main.tsx</code></td><td>React root + <code>BrowserRouter</code></td></tr>
+      <tr><td><code>src/App.tsx</code></td><td>All route definitions</td></tr>
+      <tr><td><code>src/lib/supabase.ts</code></td><td>Supabase client, auth helpers (<code>logIn</code>, <code>logOut</code>, <code>createNewUser</code>, <code>getUserByUID</code>, <code>updateLastLogin</code>)</td></tr>
+      <tr><td><code>src/lib/captureUtils.ts</code></td><td>Capture types, PH timezone formatting, thermal condition labels, RC car live JSON parsing</td></tr>
+      <tr><td><code>src/auth/</code></td><td><code>Login.tsx</code>, <code>SignUp.tsx</code>, <code>AuthLayout.tsx</code></td></tr>
+      <tr><td><code>src/dashboard2/</code></td><td><strong>Current</strong> dashboard pages + <code>DashboardShell.tsx</code></td></tr>
+      <tr><td><code>src/dashboard/</code></td><td><strong>Legacy v1</strong> dashboard (scan_history–based)</td></tr>
+      <tr><td><code>src/testing/MapView.tsx</code></td><td>Full-screen map (main field UI)</td></tr>
+      <tr><td><code>src/demo/YOLO26.tsx</code></td><td>Standalone pothole upload demo</td></tr>
+      <tr><td><code>src/components/</code></td><td>Reusable UI (nav, capture lists/details, thermal grid, etc.)</td></tr>
+      <tr><td><code>public/</code></td><td>Static assets (favicon SVG, sample <code>potholes630.jpg</code>)</td></tr>
+      <tr><td><code>unrelated/captures.csv</code></td><td>Sample/export data (not wired into the app)</td></tr>
+      <tr><td><code>vite.config.ts</code></td><td>React SWC + Tailwind plugins</td></tr>
+      <tr><td><code>tsconfig*.json</code></td><td>Strict TS for app + Node (Vite config)</td></tr>
+    </table>
+
+    <!-- 4 -->
+    <h2 id="architecture">4. App architecture</h2>
+    <ul>
+      <li><strong>SPA:</strong> Single-page app; all routes client-side. Netlify/Render rewrite <code>/* → index.html</code> for deep links.</li>
+      <li><strong>Entry:</strong> <code>main.tsx</code> wraps <code>App</code> in <code>BrowserRouter</code>.</li>
+      <li><strong>Global side effect:</strong> <code>LastLoginTracker</code> runs on every page — listens to Supabase auth and updates <code>users.last_login</code>.</li>
+      <li><strong>Dashboard v2 shell:</strong> <code>DashboardShell</code> provides sidebar (<code>SideNavigation</code>), page title, fade transitions on navigate, loading overlay.</li>
+      <li><strong>Map view:</strong> Standalone full-screen layout (not using DashboardShell); auth-guard redirects to <code>/login</code>.</li>
+    </ul>
+
+    <h3>Routes (<code>App.tsx</code>)</h3>
+    <table>
+      <tr><th>Path</th><th>Screen</th><th>Notes</th></tr>
+      <tr><td><code>/</code></td><td>Redirect</td><td>→ <code>/dashboard</code></td></tr>
+      <tr><td><code>/login</code>, <code>/signup</code></td><td>Auth</td><td>Email/password via Supabase</td></tr>
+      <tr><td><code>/dashboard</code></td><td>Dashboard home</td><td><span class="tag tag-live">v2</span> Stats from <code>captures</code></td></tr>
+      <tr><td><code>/live-feed</code></td><td>Live Feed</td><td>Embedded MJPEG/stream URLs</td></tr>
+      <tr><td><code>/map</code></td><td>Map</td><td>Leaflet + live GPS/thermal/RC polls</td></tr>
+      <tr><td><code>/history</code></td><td>History</td><td>Capture list + detail</td></tr>
+      <tr><td><code>/account</code></td><td>Account</td><td>Profile + logout</td></tr>
+      <tr><td><code>/users</code></td><td>Users</td><td>Admin-style user list</td></tr>
+      <tr><td><code>/ai-models</code></td><td>AI Models</td><td>Static placeholder cards (v1 model metadata)</td></tr>
+      <tr><td><code>/demo/yolo26</code></td><td>YOLO demo</td><td><span class="tag tag-demo">demo</span> Upload → HF Space → Storage</td></tr>
+      <tr><td><code>/dashboard-v1</code></td><td>Legacy dashboard</td><td><span class="tag tag-legacy">v1</span> Uses <code>scan_history</code></td></tr>
+      <tr><td><code>/dashboard-v1/scanhistory</code></td><td>Legacy scan list</td><td><span class="tag tag-legacy">v1</span></td></tr>
+    </table>
+
+    <!-- 5 -->
+    <h2 id="auth">5. Authentication &amp; users</h2>
+    <ul>
+      <li><strong>Supabase Auth:</strong> <code>signInWithPassword</code>, <code>signUp</code>, <code>signOut</code>, <code>getSession</code>, <code>onAuthStateChange</code>.</li>
+      <li><strong>Profile table:</strong> On signup, a row is inserted into <code>users</code> with profile fields linked by <code>user_id</code> (auth UUID).</li>
+      <li><strong>Last login:</strong> <code>LastLoginTracker</code> + <code>updateLastLogin()</code> write ISO timestamp to <code>users.last_login</code>.</li>
+      <li><strong>Protected UX:</strong> Map explicitly checks session; other dashboard pages load user data but may not hard-redirect (worth noting in security discussions).</li>
+    </ul>
+  <p><strong>User fields referenced in UI:</strong> <code>username</code>, <code>full_name</code>, <code>email</code>, <code>role</code>, <code>contact_number</code>, <code>created_at</code>, <code>user_id</code>.</p>
+
+    <!-- 6 -->
+    <h2 id="data">6. Supabase data model</h2>
+    <p>No migration files live in this repo — schema is managed in Supabase cloud. Tables and buckets used in code:</p>
+
+    <div class="card">
+      <h3>Table: <code>captures</code> <span class="tag tag-live">primary</span></h3>
+      <p>Field inspection records from the RC rig (v2 pipeline).</p>
+      <ul>
+        <li><code>id</code>, <code>captured_at</code>, <code>gps_latitude</code>, <code>gps_longitude</code>, <code>gps_valid</code></li>
+        <li>Thermal: <code>thermal_max_c</code>, <code>thermal_min_c</code>, <code>thermal_mean_c</code>, <code>thermal_ambient_c</code>, <code>thermal_grid</code> (2D array)</li>
+        <li>Vision: <code>image_url</code>, <code>yolo_crack</code>, <code>yolo_pothole</code></li>
+        <li>Vehicle: <code>rccar_temperature_c</code></li>
+      </ul>
+      <p>Queries typically filter <code>gps_valid = true</code> and order by <code>captured_at</code> descending.</p>
+    </div>
+
+    <div class="card">
+      <h3>Table: <code>users</code></h3>
+      <p>App profiles tied to Supabase Auth IDs.</p>
+    </div>
+
+    <div class="card">
+      <h3>Table: <code>scan_history</code> <span class="tag tag-legacy">v1 / demo</span></h3>
+      <p>Older pothole-scan workflow: <code>original_img_url</code>, <code>annotated_img_url</code>, <code>pothole_count</code>, <code>created_at</code>.</p>
+    </div>
+
+    <div class="card">
+      <h3>Storage bucket: <code>ai-pothole-scanner</code></h3>
+      <p>Used by <code>demo/YOLO26.tsx</code> for original + annotated images; public URLs stored in <code>scan_history</code>.</p>
+    </div>
+
+    <!-- 7 -->
+    <h2 id="external">7. External services &amp; APIs</h2>
+    <table>
+      <tr><th>Service</th><th>URL / usage</th><th>Used by</th></tr>
+      <tr>
+        <td>Supabase</td>
+        <td>Env: <code>VITE_SUPABASE_URL</code>, <code>VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY</code></td>
+        <td>Auth, DB, storage (demo)</td>
+      </tr>
+      <tr>
+        <td>Streaming server</td>
+        <td><code>https://stream.asphaltguard.online</code></td>
+        <td>Live Feed, Map polling</td>
+      </tr>
+      <tr>
+        <td>Camera stream</td>
+        <td><code>/video/camera</code></td>
+        <td>Live Feed</td>
+      </tr>
+      <tr>
+        <td>Thermal stream</td>
+        <td><code>/video/thermal</code></td>
+        <td>Live Feed</td>
+      </tr>
+      <tr>
+        <td>GPS API</td>
+        <td><code>/gps</code> (JSON: lat, lon, valid, …)</td>
+        <td>MapView — 2s poll</td>
+      </tr>
+      <tr>
+        <td>Thermal raw API</td>
+        <td><code>/api/thermal/raw</code></td>
+        <td>MapView — 2s poll</td>
+      </tr>
+      <tr>
+        <td>RC car telemetry</td>
+        <td><code>/rccar</code></td>
+        <td>MapView — parsed by <code>parseRccarLiveResponse</code></td>
+      </tr>
+      <tr>
+        <td>Hugging Face Space</td>
+        <td><code>https://asphaltguard-pothole.hf.space/detect</code> POST multipart</td>
+        <td>YOLO26 demo — returns count + annotated image</td>
+      </tr>
+      <tr>
+        <td>OpenStreetMap</td>
+        <td>Tile server for map basemap</td>
+        <td>MapView</td>
+      </tr>
+      <tr>
+        <td>Google Fonts</td>
+        <td>Google Sans Code</td>
+        <td><code>style.css</code></td>
+      </tr>
+    </table>
+    <p class="talk">
+      “The frontend does not run ML inference locally for production captures — detection results arrive precomputed in Supabase (<code>yolo_*</code> flags). The HF Space endpoint is only for the upload demo.”
+    </p>
+
+    <!-- 8 -->
+    <h2 id="features">8. Features by screen</h2>
+
+    <div class="card">
+      <h3>Dashboard (<code>/dashboard</code>)</h3>
+      <ul>
+        <li>Loads signed-in user from <code>users</code>.</li>
+        <li>Aggregates all valid GPS captures: total inspected, defect count (crack + pothole flags), thermal condition histogram (Good / Fair / Deteriorating / Critical).</li>
+        <li>Shows latest capture time (Philippine timezone), peak and average max thermal.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Live Feed (<code>/live-feed</code>)</h3>
+      <ul>
+        <li>Two <code>&lt;img&gt;</code> streams: visible camera + thermal camera.</li>
+        <li>Status handling: loading / online / error with auto-retry every 3s.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Map (<code>/map</code>)</h3>
+      <ul>
+        <li>Centered near PSU coordinates; markers for captures colored by defects / thermal thresholds.</li>
+        <li>Live drone/RC GPS marker when <code>/gps</code> reports valid fix; stale vs active styling.</li>
+        <li>Side panel: “Asphalt Condition” — capture list, detail view with thermal grid (<code>ThermalGrid</code> inferno colormap).</li>
+        <li>Browser geolocation for “fly to user”.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>History (<code>/history</code>)</h3>
+      <ul>
+        <li>Same <code>captures</code> data as map list, optimized for browse/detail (not map-centric).</li>
+        <li>Components: <code>HistoryCaptureList</code>, <code>HistoryCaptureDetail</code>.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Account (<code>/account</code>)</h3>
+      <ul>
+        <li>Displays profile + auth email; logout → <code>/login</code>.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Users (<code>/users</code>)</h3>
+      <ul>
+        <li>Lists all rows from <code>users</code> (name, username, email, role).</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>AI Models (<code>/ai-models</code>)</h3>
+      <ul>
+        <li>Static in-app catalog: “AsphaltGuard Model v1” (YOLOv26n, F1 0.81) and v2 placeholder.</li>
+        <li>No live training pipeline in this repo — presentation layer only.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>YOLO demo (<code>/demo/yolo26</code>)</h3>
+      <ul>
+        <li>User uploads image → HF detect API → uploads to Supabase Storage → inserts <code>scan_history</code>.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Legacy dashboard v1</h3>
+      <ul>
+        <li><code>/dashboard-v1</code> — stats from <code>scan_history</code> (pothole counts, thermal fields if present).</li>
+        <li><code>/dashboard-v1/scanhistory</code> — list of scans; <code>ScanHistoryCard</code> component.</li>
+        <li><code>Scan.tsx</code> is a stub (“DashboardScan”).</li>
+      </ul>
+    </div>
+
+    <!-- 9 -->
+    <h2 id="components">9. Shared components</h2>
+    <table>
+      <tr><th>Component</th><th>Role</th></tr>
+      <tr><td><code>SideNavigation</code></td><td>Nav items: Map, Live Feed, Dashboard, Account, Users, AI Models, History (lucide icons)</td></tr>
+      <tr><td><code>DashboardShell</code></td><td>Layout wrapper for v2 pages</td></tr>
+      <tr><td><code>LastLoginTracker</code></td><td>Auth listener → update last login</td></tr>
+      <tr><td><code>MapCaptureList</code> / <code>MapCaptureDetail</code></td><td>Map side panel capture UI</td></tr>
+      <tr><td><code>HistoryCaptureList</code> / <code>HistoryCaptureDetail</code></td><td>History page capture UI</td></tr>
+      <tr><td><code>ThermalGrid</code></td><td>Renders 2D thermal array with inferno color scale (0–100°C)</td></tr>
+      <tr><td><code>ScanHistoryCard</code></td><td>Legacy scan display card</td></tr>
+      <tr><td><code>AuthLayout</code></td><td>Shared login/signup chrome</td></tr>
+    </table>
+    <p>Assets: <code>src/assets/traffic-cone.svg</code>, <code>public/asphaltguard-favicon.svg</code>.</p>
+
+    <!-- 10 -->
+    <h2 id="domain">10. Domain logic (thermal &amp; defects)</h2>
+    <p>Centralized in <code>captureUtils.ts</code> and mirrored in dashboard/map:</p>
+    <table>
+      <tr><th>Max surface temp (°C)</th><th>Condition</th></tr>
+      <tr><td>≤ 50</td><td>Good</td></tr>
+      <tr><td>51–60</td><td>Fair</td></tr>
+      <tr><td>61–70</td><td>Deteriorating</td></tr>
+      <tr><td>&gt; 70</td><td>Critical</td></tr>
+    </table>
+    <ul>
+      <li><strong>Defects:</strong> <code>yolo_crack</code> and <code>yolo_pothole</code> booleans increment defect counts; map pins use alert styling when true.</li>
+      <li><strong>Time labels:</strong> Captures titled Morning / Afternoon / Evening / Night based on <code>Asia/Manila</code> hour.</li>
+      <li><strong>RC temperature:</strong> Prefers <code>rccar_temperature_c</code>, falls back to <code>thermal_mean_c</code>.</li>
+    </ul>
+
+    <!-- 11 -->
+    <h2 id="deploy">11. Deployment &amp; configuration</h2>
+    <ul>
+      <li><strong>Build output:</strong> <code>dist/</code> static files after <code>npm run build</code>.</li>
+      <li><strong>Netlify:</strong> SPA fallback <code>/* → /index.html</code> (status 200).</li>
+      <li><strong>Render:</strong> Same rewrite pattern in <code>render.yaml</code>.</li>
+      <li><strong>Secrets:</strong> <code>.env</code> is gitignored; must set Supabase URL and anon/publishable key for any environment.</li>
+      <li><strong>Dev server:</strong> <code>vite --host</code> exposes LAN for mobile/tablet testing.</li>
+    </ul>
+
+    <!-- 12 -->
+    <h2 id="dev">12. Development workflow</h2>
+    <ol>
+      <li>Clone repo → <code>npm install</code></li>
+      <li>Create <code>.env</code> with <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY</code></li>
+      <li><code>npm run dev</code> → open local URL (default Vite port)</li>
+      <li><code>npm run lint</code> before commits</li>
+      <li><code>npm run build</code> to verify production compile (TypeScript project references)</li>
+    </ol>
+    <p><strong>What’s not in this folder:</strong> Supabase SQL migrations, edge functions, Python/embedded RC car firmware, stream server implementation, or model training code — those are separate systems that feed this UI.</p>
+
+    <!-- 13 -->
+    <h2 id="prompts">13. Discussion prompts</h2>
+    <p>Use these when presenting or defending design choices:</p>
+    <div class="grid2">
+      <div class="card">
+        <h3>Product</h3>
+        <ul>
+          <li>Who is the primary user — field operator, supervisor, or public works?</li>
+          <li>How do thermal bands map to maintenance decisions?</li>
+          <li>What is the capture → upload → dashboard latency target?</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Architecture</h3>
+        <ul>
+          <li>Why Supabase vs custom API?</li>
+          <li>Why poll stream APIs every 2s instead of WebSockets?</li>
+          <li>v1 <code>scan_history</code> vs v2 <code>captures</code> migration plan?</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Security</h3>
+        <ul>
+          <li>RLS policies on <code>captures</code> and <code>users</code>?</li>
+          <li>Should all routes enforce auth like <code>/map</code>?</li>
+          <li>Are storage buckets public appropriately?</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>ML / IoT</h3>
+        <ul>
+          <li>Where does YOLO run on the vehicle vs cloud?</li>
+          <li>How is <code>thermal_grid</code> produced and stored?</li>
+          <li>Accuracy and calibration of GPS + thermal alignment?</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>One-paragraph summary (read aloud)</h3>
+    <p class="talk" style="font-style: normal;">
+      AsphaltGuard is a Vite-powered React dashboard for an asphalt inspection platform. It authenticates users with Supabase,
+      stores rich capture records (GPS, thermal stats, YOLO flags, images), and visualizes them on a Leaflet map and history views.
+      Live camera and telemetry come from a dedicated streaming host. The codebase includes a legacy pothole-upload demo (Hugging Face + Storage)
+      and a newer v2 experience built around the <code>captures</code> table, with deployment configured for static hosting on Netlify or Render.
+    </p>
+
+    <footer>
+      File: <code>asphalt-guard-discussion-guide.html</code> — open in any browser. Update when routes or integrations change.
+    </footer>
+  </div>
+</body>
+</html>

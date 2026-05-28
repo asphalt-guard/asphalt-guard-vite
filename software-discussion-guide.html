@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AsphaltGuard / MLX90640 Project — Discussion Guide</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #161a22;
+      --border: #2a2e38;
+      --text: #e2e4e9;
+      --muted: #9ca3af;
+      --accent: #3b82f6;
+      --accent2: #22c55e;
+      --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      padding: 0 1rem 3rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    header {
+      padding: 2rem 0 1.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+    header h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.35rem; }
+    header p { color: var(--muted); font-size: 1rem; }
+    nav.toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+    }
+    nav.toc h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.6rem; }
+    nav.toc ol { padding-left: 1.25rem; }
+    nav.toc li { margin: 0.25rem 0; }
+    nav.toc a { color: var(--accent); text-decoration: none; }
+    nav.toc a:hover { text-decoration: underline; }
+    section {
+      margin-bottom: 2.5rem;
+      scroll-margin-top: 1rem;
+    }
+    section > h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.35rem;
+      border-bottom: 2px solid var(--accent);
+      display: inline-block;
+    }
+    h3 { font-size: 1rem; margin: 1rem 0 0.4rem; color: #c4c8d0; }
+    p, li { margin-bottom: 0.5rem; }
+    ul, ol { padding-left: 1.35rem; margin-bottom: 0.75rem; }
+    .talking-points {
+      background: #1a2332;
+      border-left: 3px solid var(--accent2);
+      padding: 0.75rem 1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 0.75rem 0;
+    }
+    .talking-points strong { color: var(--accent2); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .talking-points ul { margin-top: 0.4rem; margin-bottom: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin: 0.75rem 0;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.45rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--surface); color: var(--muted); font-weight: 500; }
+    code, kbd {
+      font-family: ui-monospace, "Cascadia Code", monospace;
+      font-size: 0.85em;
+      background: #1c2029;
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+    }
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      overflow-x: auto;
+      font-size: 0.8rem;
+      line-height: 1.45;
+      margin: 0.75rem 0;
+    }
+    .diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: ui-monospace, monospace;
+      font-size: 0.72rem;
+      line-height: 1.35;
+      white-space: pre;
+      overflow-x: auto;
+      color: #a8b0bd;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      padding: 0.15em 0.45em;
+      border-radius: 4px;
+      background: #252a35;
+      color: var(--muted);
+      margin-right: 0.25rem;
+    }
+    .tag.cpp { color: #7dd3fc; }
+    .tag.py { color: #86efac; }
+    .tag.hw { color: #fcd34d; }
+    .tag.cloud { color: #c4b5fd; }
+    footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Project discussion guide</h1>
+  <p>Raspberry Pi sensor stack + road-surface vision (YOLO) + web dashboard + Supabase — everything in <code>/home/main/project</code></p>
+</header>
+
+<nav class="toc" aria-label="Contents">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#overview">One-minute overview</a></li>
+    <li><a href="#architecture">Architecture &amp; data flow</a></li>
+    <li><a href="#hardware">Hardware in use</a></li>
+    <li><a href="#cpp">C++ programs (sensor readers)</a></li>
+    <li><a href="#python">Python stack &amp; scripts</a></li>
+    <li><a href="#ml">ML models (YOLO segmentation)</a></li>
+    <li><a href="#server">FastAPI web server &amp; dashboard</a></li>
+    <li><a href="#supabase">Supabase (cloud storage &amp; DB)</a></li>
+    <li><a href="#esp32">ESP32 RC car firmware</a></li>
+    <li><a href="#rf">433 MHz RF receiver</a></li>
+    <li><a href="#systemd">Systemd services</a></li>
+    <li><a href="#build">Build, run &amp; permissions</a></li>
+    <li><a href="#dev">Development environment</a></li>
+    <li><a href="#files">Folder map (what lives where)</a></li>
+    <li><a href="#prompts">Discussion prompts</a></li>
+  </ol>
+</nav>
+
+<!-- 1. OVERVIEW -->
+<section id="overview">
+  <h2>1. One-minute overview</h2>
+  <p>
+    This repo is an <strong>edge inspection platform on a Raspberry Pi</strong> for asphalt / road monitoring (“AsphaltGuard”).
+    It combines:
+  </p>
+  <ul>
+    <li><strong>Visible camera + YOLO11 segmentation</strong> — detects <em>cracks</em> and <em>potholes</em> in real time.</li>
+    <li><strong>MLX90640 thermal camera</strong> — 32×24 temperature grid over I2C for surface heat patterns.</li>
+    <li><strong>GPS (NEO-6M)</strong> — geotags readings via UART / NMEA.</li>
+    <li><strong>RC car probe (ESP32 + MAX6675)</strong> — Bluetooth temperature on a mobile test rig.</li>
+    <li><strong>Optional 433 MHz RF</strong> — RadioHead ASK decoder via <code>pigpio</code>.</li>
+    <li><strong>FastAPI server</strong> — dual MJPEG streams, stats API, local captures, upload to Supabase.</li>
+  </ul>
+
+  <div class="talking-points">
+    <strong>How to introduce it</strong>
+    <ul>
+      <li>“Sensors run as small C++ daemons that write JSON to <code>/tmp</code>; Python reads those files and serves a browser dashboard.”</li>
+      <li>“Inference uses an NCNN-exported YOLO model on the Pi for speed; PyTorch <code>.pt</code> is also available.”</li>
+      <li>“Captures bundle camera frame + thermal grid + GPS + RC temperature into CSV, then optionally sync to Supabase.”</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 2. ARCHITECTURE -->
+<section id="architecture">
+  <h2>2. Architecture &amp; data flow</h2>
+  <p>The design is deliberately <strong>loosely coupled</strong>: C++ processes own hardware; Python polls JSON sidecars.</p>
+
+  <div class="diagram">┌─────────────────────────────────────────────────────────────────────────┐
+│                         Raspberry Pi (Linux)                              │
+├─────────────────────────────────────────────────────────────────────────┤
+│  C++ daemons (CMake / build/)                                           │
+│    thermal_camera  ──► /tmp/thermal_camera_latest.json                  │
+│    gps_reader      ──► /tmp/gps_latest.json                             │
+│    rccar_reader    ──► /tmp/rccar_latest.json   (Bluetooth RFCOMM)      │
+│    rf_receiver     ──► stdout (433 MHz, pigpio)                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│  scripts/server.py (FastAPI + uvicorn)                                    │
+│    • Picamera2 + YOLO (NCNN or .pt)  →  MJPEG /video/camera            │
+│    • Poll thermal JSON               →  MJPEG /video/thermal             │
+│    • Poll GPS / RC JSON              →  /gps, /rccar, /api/stats        │
+│    • POST /capture                   →  captures/*.jpg + captures.csv     │
+│    • POST /upload                    →  Supabase Storage + Postgres     │
+└─────────────────────────────────────────────────────────────────────────┘
+         ▲                    ▲                    ▲
+         │ I2C              │ UART               │ Bluetooth SPP
+    MLX90640            NEO-6M GPS            ESP32 "AsphaltGuard-RC"
+    Pi Camera           (HW-248)              MAX6675 thermocouple</div>
+
+  <div class="talking-points">
+    <strong>Design choices worth mentioning</strong>
+    <ul>
+      <li>Atomic JSON writes (write temp file, rename) so readers never see half-written data.</li>
+      <li>Same pattern lets you run C++ readers under systemd while developing the Python server separately.</li>
+      <li>Default entry point: <code>./run</code> → <code>.venv/bin/python scripts/server.py --conf 0.10 --imgsz 224 --stride 5 --ncnn</code></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 3. HARDWARE -->
+<section id="hardware">
+  <h2>3. Hardware in use</h2>
+  <table>
+    <thead>
+      <tr><th>Device</th><th>Interface</th><th>Software</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>MLX90640 thermal breakout</td>
+        <td>I2C (<code>/dev/i2c-1</code>, addr <code>0x33</code>)</td>
+        <td><span class="tag cpp">thermal_camera</span></td>
+        <td>32×24 pixels; Pimoroni/Melexis driver in <code>lib/mlx90640/</code></td>
+      </tr>
+      <tr>
+        <td>GPS6MV2 / GY-NEO6MV2 (u-blox NEO-6M)</td>
+        <td>UART <code>/dev/serial0</code> @ 9600 baud, NMEA</td>
+        <td><span class="tag cpp">gps_reader</span></td>
+        <td>Module TX → Pi RX (GPIO15); 3.3 V only</td>
+      </tr>
+      <tr>
+        <td>Raspberry Pi Camera</td>
+        <td>libcamera / Picamera2</td>
+        <td><span class="tag py">server.py</span>, <span class="tag py">camera_infer_dual.py</span></td>
+        <td>Default 640×480 capture; inference often 224×224 letterbox</td>
+      </tr>
+      <tr>
+        <td>ESP32 + MAX6675 + motor driver</td>
+        <td>Bluetooth SPP → <code>/dev/rfcomm0</code></td>
+        <td><span class="tag cpp">rccar_reader</span>, <span class="tag hw">esp32/rccar.ino</span></td>
+        <td>BT name <code>AsphaltGuard-RC</code>; send <code>TEMP</code> for reading</td>
+      </tr>
+      <tr>
+        <td>433 MHz ASK RF module</td>
+        <td>GPIO 13, pigpio</td>
+        <td><span class="tag cpp">rf_receiver</span></td>
+        <td>RadioHead RH_ASK @ 2000 bps; pairs with Arduino/ESP32 TX</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Pi configuration (from README)</h3>
+  <ul>
+    <li>I2C: <code>dtparam=i2c_arm=on</code>, optional <code>dtparam=i2c1_baudrate=400000</code></li>
+    <li>UART: <code>enable_uart=1</code>, often <code>dtoverlay=disable-bt</code>; remove serial console from cmdline</li>
+    <li>User in <code>i2c</code> and <code>dialout</code> groups for sensor access</li>
+  </ul>
+</section>
+
+<!-- 4. C++ -->
+<section id="cpp">
+  <h2>4. C++ programs (<code>src/</code>)</h2>
+  <p>Built with <strong>CMake</strong> (<code>CMakeLists.txt</code>) or legacy <strong>Makefile</strong>. Targets install to <code>build/</code>.</p>
+
+  <table>
+    <thead>
+      <tr><th>Binary</th><th>Source</th><th>Linked libs</th><th>Role</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>thermal_camera</code></td>
+        <td><code>src/thermal_camera_reader.cpp</code></td>
+        <td><code>mlx90640</code>, pthread</td>
+        <td>Reads frames, optional terminal heatmap, exports JSON with full temp grid</td>
+      </tr>
+      <tr>
+        <td><code>gps_reader</code></td>
+        <td><code>src/gps_reader.cpp</code></td>
+        <td>—</td>
+        <td>Parses NMEA (<code>$GPGGA</code>, <code>$GPRMC</code>), exports fix JSON</td>
+      </tr>
+      <tr>
+        <td><code>rccar_reader</code></td>
+        <td><code>src/rccar_reader.cpp</code></td>
+        <td>pthread</td>
+        <td>Polls ESP32 over RFCOMM; reconnect logic for power cycles</td>
+      </tr>
+      <tr>
+        <td><code>rf_receiver</code></td>
+        <td><code>src/rf_receiver.cpp</code></td>
+        <td>pigpio, rt, pthread</td>
+        <td>Decodes RH_ASK packets; not wired into server yet</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Third-party C++ library</h3>
+  <ul>
+    <li><code>lib/mlx90640/</code> — Pimoroni MLX90640 port (Apache 2.0 / Melexis), Linux I2C driver</li>
+  </ul>
+
+  <h3>Typical JSON sidecars</h3>
+  <pre>/tmp/thermal_camera_latest.json  →  width, height, ambient_c, min/max/mean, temperatures[][]
+/tmp/gps_latest.json               →  valid, lat, lon, altitude, satellites, utc_time, …
+/tmp/rccar_latest.json             →  connected, valid, temperature_c, error_code, …</pre>
+
+  <div class="talking-points">
+    <strong>Talking points</strong>
+    <ul>
+      <li>C++ keeps timing-sensitive I2C/UART/Bluetooth off the Python GIL.</li>
+      <li><code>rccar_reader</code> can re-bind RFCOMM if the ESP32 drops — important for field demos.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 5. PYTHON -->
+<section id="python">
+  <h2>5. Python stack &amp; scripts</h2>
+
+  <h3>Virtual environment (<code>.venv/</code>)</h3>
+  <p>Dependencies in <code>requirements.txt</code>:</p>
+  <table>
+    <thead><tr><th>Package</th><th>Used for</th></tr></thead>
+    <tbody>
+      <tr><td><code>numpy</code>, <code>opencv-python</code></td><td>Thermal colormap, image handling, overlays</td></tr>
+      <tr><td><code>ultralytics==8.3.70</code></td><td>YOLO training/inference API</td></tr>
+      <tr><td><code>torch</code>, <code>torchvision</code></td><td>PyTorch backend (optional on Pi)</td></tr>
+      <tr><td><code>fastapi</code>, <code>uvicorn</code></td><td>HTTP server, MJPEG streaming</td></tr>
+    </tbody>
+  </table>
+  <p><strong>System / Pi packages</strong> (not in requirements): <code>picamera2</code> (libcamera), often installed via apt on Bookworm.</p>
+
+  <h3>Scripts (<code>scripts/</code>)</h3>
+  <table>
+    <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>server.py</code></td><td><strong>Main app</strong> — dual MJPEG, dashboard HTML, capture, Supabase upload</td></tr>
+      <tr><td><code>camera_infer_dual.py</code></td><td>Standalone Picamera2 + YOLO viewer (no web server)</td></tr>
+      <tr><td><code>thermal_view.py</code></td><td>OpenCV window reading thermal JSON</td></tr>
+      <tr><td><code>thermal_view_fixed.py</code></td><td>Variant thermal viewer</td></tr>
+      <tr><td><code>rccar_watch.py</code></td><td>Terminal live view of RC car JSON</td></tr>
+      <tr><td><code>export_ncnn.py</code></td><td>Curses TUI to export <code>.pt</code> → NCNN under <code>model/</code></td></tr>
+      <tr><td><code>rccar-rfcomm-bind.sh</code></td><td>Binds <code>/dev/rfcomm0</code> to ESP32 MAC (used by systemd)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 6. ML -->
+<section id="ml">
+  <h2>6. ML models (<code>model/</code>)</h2>
+  <ul>
+    <li><strong>Task:</strong> YOLO11n <em>segmentation</em> — classes <code>crack</code> (0), <code>pothole</code> (1)</li>
+    <li><strong>Training source:</strong> Ultralytics; dataset refs in metadata (<code>all-together-2-1</code>, etc.)</li>
+    <li><strong>Production on Pi:</strong> NCNN export in <code>best (2)_ncnn_model/</code> (224×224, stride 32)</li>
+    <li><strong>Alternate:</strong> <code>dual_ncnn_model/</code> (640×640 imgsz in metadata)</li>
+    <li><strong>PyTorch weights:</strong> <code>best (2).pt</code> (referenced in code; use <code>--ncnn</code> flag to prefer NCNN)</li>
+  </ul>
+  <p>Server flags: <code>--conf</code>, <code>--imgsz</code>, <code>--stride</code> (infer every N frames), <code>--ncnn</code>, <code>--max-det</code>.</p>
+
+  <div class="talking-points">
+    <strong>Talking points</strong>
+    <ul>
+      <li>NCNN reduces latency on ARM; stride &gt; 1 trades accuracy refresh rate for FPS.</li>
+      <li>Detection booleans <code>yolo_crack</code> / <code>yolo_pothole</code> are stored per capture row.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 7. SERVER -->
+<section id="server">
+  <h2>7. FastAPI web server (<code>scripts/server.py</code>)</h2>
+
+  <h3>Background threads</h3>
+  <ul>
+    <li><code>camera_thread</code> — Picamera2 capture + YOLO overlay → JPEG buffer</li>
+    <li><code>thermal_thread</code> — polls thermal JSON → colormap JPEG</li>
+    <li><code>gps_thread</code> — polls GPS JSON (unless <code>--no-gps</code>)</li>
+    <li><code>rccar_thread</code> — polls RC JSON (unless <code>--no-rccar</code>)</li>
+  </ul>
+
+  <h3>HTTP routes</h3>
+  <table>
+    <thead><tr><th>Route</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>GET /</code></td><td>Embedded dashboard (dual video + GPS + RC bars + Capture/Upload buttons)</td></tr>
+      <tr><td><code>GET /video/camera</code>, <code>/camera</code></td><td>MJPEG YOLO camera stream</td></tr>
+      <tr><td><code>GET /video/thermal</code>, <code>/thermal</code></td><td>MJPEG thermal heatmap</td></tr>
+      <tr><td><code>GET /api/stats</code></td><td>JSON: camera FPS, thermal min/max, GPS, RC car</td></tr>
+      <tr><td><code>GET /api/thermal/raw</code></td><td>Raw temperature grid</td></tr>
+      <tr><td><code>GET /gps</code>, <code>GET /rccar</code></td><td>Latest sensor JSON</td></tr>
+      <tr><td><code>POST /capture</code></td><td>Save JPEG + append <code>captures/captures.csv</code></td></tr>
+      <tr><td><code>POST /upload</code></td><td>Upload pending captures to Supabase</td></tr>
+      <tr><td><code>GET /captures</code></td><td>List local capture metadata</td></tr>
+    </tbody>
+  </table>
+
+  <p>Default bind: <code>0.0.0.0:8000</code>. Local data: <code>captures/</code> directory.</p>
+</section>
+
+<!-- 8. SUPABASE -->
+<section id="supabase">
+  <h2>8. Supabase (cloud)</h2>
+  <ul>
+    <li><strong>Storage bucket:</strong> <code>captures</code> (public read; anon insert/update per migration)</li>
+    <li><strong>Table:</strong> <code>public.captures</code> — timestamps, image URL, camera stats, thermal summary + <code>thermal_grid</code> JSONB, GPS fields, RC car fields, YOLO flags</li>
+    <li><strong>Migrations:</strong> <code>supabase/migrations/001_captures.sql</code>, <code>002_add_rccar_columns.sql</code></li>
+    <li><strong>Config:</strong> <code>SUPABASE_URL</code>, <code>SUPABASE_KEY</code>, <code>SUPABASE_BUCKET</code> env vars (defaults exist in <code>server.py</code> — override in production)</li>
+  </ul>
+
+  <div class="talking-points">
+    <strong>Talking points</strong>
+    <ul>
+      <li>Edge-first: CSV + images on disk, then batch upload when network is available.</li>
+      <li>RLS policies allow anonymous insert for demo kits; tighten for production.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 9. ESP32 -->
+<section id="esp32">
+  <h2>9. ESP32 RC car firmware (<code>esp32/rccar.ino</code>)</h2>
+  <ul>
+    <li><strong>Bluetooth:</strong> <code>BluetoothSerial</code>, device name <code>AsphaltGuard-RC</code></li>
+    <li><strong>Temperature:</strong> MAX6675 on SPI pins (CS 5, SO 19, CLK 18); responds to <code>T</code> / <code>TEMP</code></li>
+    <li><strong>RC control:</strong> CH1/CH2 PWM-style inputs (GPIO 32/35), motor H-bridge outputs, auto-stop after 150 ms idle</li>
+    <li><strong>Flashed with:</strong> Arduino IDE / PlatformIO (Bluetooth enabled in sdkconfig)</li>
+  </ul>
+  <p>Pi pairs once via <code>bluetoothctl</code>; <code>scripts/rccar-rfcomm-bind.sh</code> binds MAC → <code>/dev/rfcomm0</code>.</p>
+</section>
+
+<!-- 10. RF -->
+<section id="rf">
+  <h2>10. 433 MHz RF receiver</h2>
+  <p><code>rf_receiver</code> uses <strong>pigpio</strong> for microsecond edge timing and decodes <strong>RadioHead RH_ASK</strong> at 2000 bps on GPIO 13. Useful for wireless triggers or remote sensors; currently a standalone diagnostic tool, not integrated into <code>server.py</code>.</p>
+  <p>Build dependency: <code>libpigpio-dev</code>, pigpio daemon running.</p>
+</section>
+
+<!-- 11. SYSTEMD -->
+<section id="systemd">
+  <h2>11. Systemd services (<code>systemd/</code>)</h2>
+  <table>
+    <thead><tr><th>Unit file</th><th>Runs</th></tr></thead>
+    <tbody>
+      <tr><td><code>thermal-camera.service</code></td><td><code>build/thermal_camera -r 4</code></td></tr>
+      <tr><td><code>gps-reader.service</code></td><td><code>build/gps_reader</code></td></tr>
+      <tr><td><code>rccar-rfcomm.service</code></td><td>RFCOMM bind script (oneshot)</td></tr>
+      <tr><td><code>rccar-reader.service</code></td><td><code>build/rccar_reader</code></td></tr>
+      <tr><td><code>rccar-rfcomm.sudoers</code></td><td>Allows rfcomm bind without full root shell</td></tr>
+    </tbody>
+  </table>
+  <p>Root-level <code>server.service</code> — FastAPI with <code>--ncnn --stride 4</code> (slightly different from <code>./run</code>).</p>
+  <p>Install pattern: copy units to <code>/etc/systemd/system/</code>, <code>daemon-reload</code>, <code>enable --now</code>.</p>
+</section>
+
+<!-- 12. BUILD -->
+<section id="build">
+  <h2>12. Build, run &amp; permissions</h2>
+
+  <h3>C++ build</h3>
+  <pre>sudo apt-get install -y build-essential cmake libi2c-dev i2c-tools
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+# or: make</pre>
+
+  <h3>Python</h3>
+  <pre>python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+./run                    # starts server with project defaults
+.venv/bin/python scripts/thermal_view.py</pre>
+
+  <h3>Quick manual stack (3 terminals)</h3>
+  <ol>
+    <li><code>./build/thermal_camera</code> (optionally redirect stdout)</li>
+    <li><code>./build/gps_reader</code> (if using GPS)</li>
+    <li><code>./run</code> or <code>.venv/bin/python scripts/server.py …</code></li>
+  </ol>
+
+  <h3>Other repo files</h3>
+  <ul>
+    <li><code>README.md</code> — hardware wiring, GPS/UART, RC Bluetooth setup</li>
+    <li><code>run</code> — one-liner launcher for the server</li>
+    <li><code>build/</code> — CMake output (binaries, not source)</li>
+    <li><code>captures/</code> — runtime capture output (created on first capture)</li>
+  </ul>
+</section>
+
+<!-- 13. DEV -->
+<section id="dev">
+  <h2>13. Development environment</h2>
+  <table>
+    <thead><tr><th>Item</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td><code>.venv/</code></td><td>Python 3.11 virtualenv (all Python commands should use it)</td></tr>
+      <tr><td><code>.envrc</code></td><td>direnv auto-activation for external terminals</td></tr>
+      <tr><td><code>.vscode/settings.json</code></td><td>Terminal cwd, venv PATH, default “project (venv)” profile</td></tr>
+      <tr><td><code>.vscode/terminal-entry.sh</code></td><td>Shell entry activating venv</td></tr>
+      <tr><td><code>.cursor/rules/project-environment.mdc</code></td><td>Cursor Agent rule: use <code>.venv</code> for Python</td></tr>
+      <tr><td><code>.cursor/hooks.json</code> + <code>auto-commit.sh</code></td><td>Optional auto-commit hook after file edits</td></tr>
+      <tr><td>Git</td><td>Version control (<code>.git/</code>)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 14. FILES -->
+<section id="files">
+  <h2>14. Folder map</h2>
+  <pre>project/
+├── README.md              # Hardware &amp; run instructions
+├── CMakeLists.txt         # C++ targets
+├── Makefile               # Alternate build
+├── requirements.txt       # Python deps
+├── run                    # Server launcher
+├── server.service         # systemd unit (root)
+├── build/                 # Compiled binaries (generated)
+├── src/                   # C++ sources (4 programs)
+├── lib/mlx90640/          # Thermal camera driver
+├── scripts/               # Python apps &amp; shell helpers
+├── model/                 # YOLO .pt / NCNN exports + metadata.yaml
+├── esp32/rccar.ino        # ESP32 firmware
+├── supabase/migrations/   # Postgres + storage schema
+├── systemd/               # Unit files for sensor daemons
+├── captures/              # Local capture output (runtime)
+├── .venv/                 # Python virtual environment
+├── .vscode/               # Editor / terminal venv setup
+└── .cursor/               # Agent rules &amp; hooks</pre>
+</section>
+
+<!-- 15. PROMPTS -->
+<section id="prompts">
+  <h2>15. Discussion prompts</h2>
+  <p>Use these when presenting to technical or non-technical audiences:</p>
+
+  <h3>Problem &amp; value</h3>
+  <ul>
+    <li>What road defects are we trying to catch early, and why both visible AI and thermal data?</li>
+    <li>How does GPS + timestamp prove <em>where</em> a defect was seen during a drive?</li>
+  </ul>
+
+  <h3>Architecture</h3>
+  <ul>
+    <li>Why split sensor readers (C++) from the web app (Python) instead of one monolith?</li>
+    <li>What breaks if <code>thermal_camera</code> stops but <code>server.py</code> keeps running?</li>
+  </ul>
+
+  <h3>ML / performance</h3>
+  <ul>
+    <li>Why NCNN on the Pi instead of full PyTorch?</li>
+    <li>What does <code>--stride 5</code> mean for detection latency vs CPU load?</li>
+    <li>How would you retrain or swap models (<code>export_ncnn.py</code>, new <code>model/</code> folder)?</li>
+  </ul>
+
+  <h3>Field hardware</h3>
+  <ul>
+    <li>Walk through RC car probe: ESP32 → Bluetooth → Pi → dashboard.</li>
+    <li>What is the RF receiver for, and could it trigger captures?</li>
+  </ul>
+
+  <h3>Data &amp; cloud</h3>
+  <ul>
+    <li>What is stored locally vs in Supabase per capture row?</li>
+    <li>How would you secure anon keys and RLS before a public pilot?</li>
+  </ul>
+
+  <h3>Operations</h3>
+  <ul>
+    <li>Which systemd units must be enabled for a “headless” demo box?</li>
+    <li>How do you verify I2C (<code>i2cdetect -y 1</code>) and GPS (raw NMEA) before the full stack?</li>
+  </ul>
+</section>
+
+<footer>
+  Generated for project discussion — open this file in any browser. Source of truth: repo at <code>/home/main/project</code>.
+  <br>Last aligned with README, CMakeLists, server.py, and migrations in the repo.
+</footer>
+
+</body>
+</html>

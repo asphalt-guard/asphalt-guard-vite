@@ -1,20 +1,36 @@
 import DashboardShell from "./DashboardShell";
 
+type ModelCard = {
+    id: string;
+    name: string;
+    modelType: string;
+    dateTrained: string;
+    f1Score: number;
+    description: string;
+    confusionMatrix: number[][];
+    confusionMatrixLabels?: string[];
+    trainingTime: string;
+    status: string;
+};
+
 function AIModels() {
-    const models = [
+    const models: ModelCard[] = [
         {
-            id: "model-placeholder",
+            id: "model-v2",
             name: "AsphaltGuard Model v2",
-            modelType: "TBD",
-            dateTrained: "—",
-            f1Score: 0,
-            description: "Placeholder for the next training run.",
+            modelType: "YOLOv11n-SEG",
+            dateTrained: "May 25, 2026",
+            f1Score: 0.75,
+            description:
+                "Segmentation model trained to detect cracks and potholes (224px input, 100 epochs).",
+            confusionMatrixLabels: ["Crack", "Pothole", "Background"],
             confusionMatrix: [
-                [0, 0],
-                [0, 0],
+                [789, 0, 278],
+                [0, 318, 433],
+                [232, 156, 0],
             ],
-            trainingTime: "—",
-            status: "Queued for training",
+            trainingTime: "1h 5m",
+            status: "Ready for deployment review",
         },
         {
             id: "model-01",
@@ -99,17 +115,57 @@ function AIModels() {
                             <p className="mb-2 text-[10px] uppercase text-gray-500">
                                 Confusion Matrix
                             </p>
-                            <div className="grid grid-cols-2 gap-2">
-                                {model.confusionMatrix.flat().map((value, i) => (
-                                    <div
-                                        key={i}
-                                        className="flex items-center justify-center rounded-lg bg-gray-700/50 py-3"
-                                    >
-                                        <span className="text-sm font-semibold text-white">
-                                            {value}
-                                        </span>
-                                    </div>
-                                ))}
+                            {model.confusionMatrixLabels && (
+                                <p className="mb-2 text-[10px] text-gray-500">
+                                    Rows: predicted · Columns: actual
+                                </p>
+                            )}
+                            <div className="overflow-x-auto">
+                                <table className="w-full min-w-48 border-separate border-spacing-1 text-center text-xs">
+                                    {model.confusionMatrixLabels && (
+                                        <thead>
+                                            <tr>
+                                                <th className="p-1" />
+                                                {model.confusionMatrixLabels.map(
+                                                    (label) => (
+                                                        <th
+                                                            key={label}
+                                                            className="p-1 font-medium text-gray-500"
+                                                        >
+                                                            {label}
+                                                        </th>
+                                                    ),
+                                                )}
+                                            </tr>
+                                        </thead>
+                                    )}
+                                    <tbody>
+                                        {model.confusionMatrix.map(
+                                            (row, rowIndex) => (
+                                                <tr key={rowIndex}>
+                                                    {model.confusionMatrixLabels && (
+                                                        <th className="p-1 font-medium text-gray-500">
+                                                            {
+                                                                model
+                                                                    .confusionMatrixLabels[
+                                                                    rowIndex
+                                                                ]
+                                                            }
+                                                        </th>
+                                                    )}
+                                                    {row.map((value, colIndex) => (
+                                                        <td
+                                                            key={colIndex}
+                                                            className="rounded-lg bg-gray-700/50 p-3 font-semibold text-white"
+                                                        >
+                                                            {value}
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                            ),
+                                        )}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
