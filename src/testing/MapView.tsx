@@ -134,6 +134,22 @@ function formatPhilippineDateTime(isoDate: string): string {
     });
 }
 
+function getCaptureTitleByTime(isoDate: string): string {
+    const hour = Number(
+        new Intl.DateTimeFormat("en-US", {
+            timeZone: PH_TIMEZONE,
+            hour: "2-digit",
+            hour12: false,
+        }).format(new Date(isoDate)),
+    );
+
+    if (Number.isNaN(hour)) return "Road Capture";
+    if (hour >= 5 && hour < 12) return "Morning Capture";
+    if (hour >= 12 && hour < 17) return "Afternoon Capture";
+    if (hour >= 17 && hour < 21) return "Evening Capture";
+    return "Night Capture";
+}
+
 function ThermalGrid({ grid }: { grid: number[][] }) {
     const rows = grid.length;
     const cols = grid[0]?.length ?? 0;
@@ -446,7 +462,9 @@ export default function MapView() {
                                                 className="rounded-lg bg-gray-800/70 p-3 text-left hover:bg-gray-700/70 transition-colors cursor-pointer"
                                             >
                                                 <div className="flex items-center justify-between mb-1">
-                                                    <p className="text-sm font-medium text-white">Capture #{cap.id}</p>
+                                                    <p className="text-sm font-medium text-white">
+                                                        {getCaptureTitleByTime(cap.captured_at)}
+                                                    </p>
                                                     <span className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full text-white ${conditionColor}`}>
                                                         {conditionLabel}
                                                     </span>
