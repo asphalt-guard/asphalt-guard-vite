@@ -3,6 +3,7 @@ import {
     formatPhilippineDateTime,
     getCaptureTitleByTime,
     getConditionFromMaxTemp,
+    getRcCarTempC,
 } from "../lib/captureUtils";
 
 type MapCaptureListProps = {
@@ -25,7 +26,7 @@ export default function MapCaptureList({
     return (
         <div className="flex flex-col gap-2">
             {captures.map((cap) => {
-                const temp = cap.thermal_max_c;
+                const temp = getRcCarTempC(cap);
                 const { label: conditionLabel, color: conditionColor } =
                     getConditionFromMaxTemp(temp);
 
@@ -47,7 +48,9 @@ export default function MapCaptureList({
                             </span>
                         </div>
                         <div className="flex items-center justify-between text-xs text-gray-400">
-                            <span>{temp !== null ? `${temp}°C` : "—"}</span>
+                            <span>
+                                {temp !== null ? `${temp.toFixed(1)}°C` : "—"}
+                            </span>
                             <span>
                                 {formatPhilippineDateTime(cap.captured_at)}
                             </span>

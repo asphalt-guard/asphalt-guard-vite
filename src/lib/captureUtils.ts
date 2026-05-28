@@ -10,11 +10,12 @@ export type CaptureRow = {
     image_url: string | null;
     yolo_crack: boolean | null;
     yolo_pothole: boolean | null;
+    rccar_temperature_c: number | null;
     captured_at: string;
 };
 
 export const CAPTURE_LIST_SELECT =
-    "id, gps_latitude, gps_longitude, thermal_max_c, thermal_min_c, thermal_mean_c, thermal_ambient_c, thermal_grid, image_url, yolo_crack, yolo_pothole, captured_at";
+    "id, gps_latitude, gps_longitude, thermal_max_c, thermal_min_c, thermal_mean_c, thermal_ambient_c, thermal_grid, image_url, yolo_crack, yolo_pothole, rccar_temperature_c, captured_at";
 
 const PH_TIMEZONE = "Asia/Manila";
 
@@ -58,13 +59,61 @@ export function getConditionFromMaxTemp(temp: number | null): {
 }
 
 export function getRcCarTempC(capture: CaptureRow): number | null {
-    const { thermal_max_c, thermal_min_c, thermal_mean_c } = capture;
-    if (
-        thermal_max_c === null ||
-        thermal_min_c === null ||
-        thermal_mean_c === null
-    ) {
-        return null;
+    if (capture.rccar_temperature_c !== null) {
+        return capture.rccar_temperature_c;
     }
-    return (thermal_max_c + thermal_min_c + thermal_mean_c) / 3;
+    return capture.thermal_mean_c;
+}
+
+export type RccarLiveData = {
+    temperature_c: number | null;
+    valid: boolean | null;
+    connected: boolean | null;
+    error_code: number | null;
+    error_message: string | null;
+};
+
+export function parseRccarLiveResponse(data: unknown): RccarLiveData | null {
+    if (!data || typeof data !== "object") return null;
+    const row = data as Record<string, unknown>;
+    if (row.error) return null;
+
+    const pickNumber = (...keys: string[]): number | null => {
+        for (const key of keys) {
+            const value = row[key];
+            if (typeof value === "number" && !Number.isNaN(value)) {
+                return value;
+            }
+        }
+        return null;
+    };
+
+    const pickBoolean = (...keys: string[]): boolean | null => {
+        for (const key of keys) {
+            const value = row[key];
+            if (typeof value === "boolean") return value;
+        }
+        return null;
+    };
+
+    const pickString = (...keys: string[]): string | null => {
+        for (const key of keys) {
+            const value = row[key];
+            if (typeof value === "string" && value.length > 0) return value;
+        }
+        return null;
+    };
+
+    return {
+        temperature_c: pickNumber(
+            "rccar_temperature_c",
+            "temperature_c",
+            "temp_c",
+            "temp",
+        ),
+        valid: pickBoolean("rccar_valid", "valid"),
+        connected: pickBoolean("rccar_connected", "connected"),
+        error_code: pickNumber("rccar_error_code", "error_code"),
+        error_message: pickString("rccar_error_message", "error_message"),
+    };
 }

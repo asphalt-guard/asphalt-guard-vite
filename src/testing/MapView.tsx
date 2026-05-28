@@ -7,7 +7,9 @@ import MapCaptureDetail from "../components/MapCaptureDetail";
 import MapCaptureList from "../components/MapCaptureList";
 import {
     CAPTURE_LIST_SELECT,
+    parseRccarLiveResponse,
     type CaptureRow,
+    type RccarLiveData,
 } from "../lib/captureUtils";
 import { supabase } from "../lib/supabase";
 import "leaflet/dist/leaflet.css";
@@ -146,7 +148,7 @@ export default function MapView() {
         max_c: number;
         mean_c: number;
     } | null>(null);
-    const [rcCarTempC, setRcCarTempC] = useState<number | null>(null);
+    const [rcCarLive, setRcCarLive] = useState<RccarLiveData | null>(null);
 
     const openCaptureDetail = (cap: CaptureRow) => {
         setSelectedCapture(cap);
@@ -196,34 +198,26 @@ export default function MapView() {
                 if (active) setThermalRaw(null);
             }
         };
-        const pollRcTemp = async () => {
+        const pollRccar = async () => {
             try {
                 const res = await fetch(
-                    "https://stream.asphaltguard.online/api/rc/temp",
+                    "https://stream.asphaltguard.online/rccar",
                 );
                 if (!res.ok) throw new Error("fetch failed");
                 const data = await res.json();
-                if (!active || data.error) return;
-                const temp =
-                    typeof data.temp_c === "number"
-                        ? data.temp_c
-                        : typeof data.temperature_c === "number"
-                          ? data.temperature_c
-                          : typeof data.temp === "number"
-                            ? data.temp
-                            : null;
-                if (temp !== null) setRcCarTempC(temp);
+                if (!active) return;
+                setRcCarLive(parseRccarLiveResponse(data));
             } catch {
-                if (active) setRcCarTempC(null);
+                if (active) setRcCarLive(null);
             }
         };
         pollGps();
         pollThermal();
-        pollRcTemp();
+        pollRccar();
         const interval = setInterval(() => {
             pollGps();
             pollThermal();
-            pollRcTemp();
+            pollRccar();
         }, 2000);
         return () => {
             active = false;
@@ -470,8 +464,9 @@ export default function MapView() {
                             Temp Data
                         </p>
                         <p className="text-lg font-bold text-white">
-                            {rcCarTempC !== null
-                                ? `${rcCarTempC.toFixed(1)}°C`
+                            {rcCarLive?.temperature_c !== null &&
+                            rcCarLive?.temperature_c !== undefined
+                                ? `${rcCarLive.temperature_c.toFixed(1)}°C`
                                 : "—"}
                         </p>
                     </div>

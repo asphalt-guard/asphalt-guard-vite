@@ -3,6 +3,7 @@ import {
     formatPhilippineDateTime,
     getCaptureTitleByTime,
     getConditionFromMaxTemp,
+    getRcCarTempC,
 } from "../lib/captureUtils";
 
 type HistoryCaptureListProps = {
@@ -25,7 +26,7 @@ export default function HistoryCaptureList({
     return (
         <div className="flex flex-col gap-2">
             {captures.map((cap) => {
-                const temp = cap.thermal_max_c;
+                const temp = getRcCarTempC(cap);
                 const { label: conditionLabel, color: conditionColor } =
                     getConditionFromMaxTemp(temp);
 
@@ -48,7 +49,7 @@ export default function HistoryCaptureList({
                         </div>
                         <div className="flex min-w-0 items-center justify-between gap-2 text-xs text-gray-400">
                             <span className="shrink-0">
-                                {temp !== null ? `${temp}°C` : "—"}
+                                {temp !== null ? `${temp.toFixed(1)}°C` : "—"}
                             </span>
                             <span className="truncate text-right">
                                 {formatPhilippineDateTime(cap.captured_at)}
