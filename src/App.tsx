@@ -11,6 +11,7 @@ import Account from "./dashboard2/Account"
 import Users from "./dashboard2/Users"
 import AIModels from "./dashboard2/AIModels"
 import History from "./dashboard2/History"
+import ThermalSensors from "./dashboard2/ThermalSensors"
 import MapView from "./testing/MapView"
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
 				<Route path="/signup" element={<SignUp />} />
 				{/* Dashboard v2 routes (main) */}
 				<Route path="/live-feed" element={<LiveFeed />} />
+				<Route path="/thermal-sensors" element={<ThermalSensors />} />
 				<Route path="/dashboard" element={<DashboardLayout />} />
 				<Route path="/account" element={<Account />} />
 				<Route path="/users" element={<Users />} />

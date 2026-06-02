@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
-import { Road, ChevronLeft, MapPin, Video, Car } from "lucide-react";
+import { Road, ChevronLeft, MapPin, Video, Car, Drone } from "lucide-react";
 import MapCaptureDetail from "../components/MapCaptureDetail";
 import MapCaptureList from "../components/MapCaptureList";
 import {
     CAPTURE_LIST_SELECT,
+    getConditionFromMaxTemp,
     parseRccarLiveResponse,
     type CaptureRow,
     type RccarLiveData,
@@ -237,6 +238,26 @@ export default function MapView() {
         loadCaptures();
     }, []);
 
+    const liveAsphaltCondition = (() => {
+        const maxC = thermalRaw?.max_c;
+        if (maxC == null) {
+            return { label: "-", color: null as string | null, analysis: "-" };
+        }
+        const { label, color } = getConditionFromMaxTemp(maxC);
+        const temp = maxC.toFixed(1);
+        let analysis: string;
+        if (maxC <= 50) {
+            analysis = `At ${temp}°C, surface heat is within the good range (≤50°C), so the pavement shows minimal aging stress.`;
+        } else if (maxC <= 60) {
+            analysis = `At ${temp}°C, surface heat is in the fair range (51–60°C), so mild warming may be starting to age the asphalt.`;
+        } else if (maxC <= 70) {
+            analysis = `At ${temp}°C, surface heat is in the deteriorating range (61–70°C), so heat stress is accelerating pavement wear.`;
+        } else {
+            analysis = `At ${temp}°C, surface heat exceeds 70°C, so the pavement is under critical heat stress and needs attention.`;
+        }
+        return { label: label.toUpperCase(), color, analysis };
+    })();
+
     return (
         <div className="relative h-screen w-screen overflow-hidden bg-gray-950">
             {!authChecked && (
@@ -313,76 +334,103 @@ export default function MapView() {
 
             {/* Live Feed Panel */}
             <div
-                className={`absolute top-4 right-4 z-998 w-[30rem] max-h-[calc(100vh-2rem)] rounded-2xl bg-gray-900/95 backdrop-blur-md shadow-2xl overflow-y-auto transition-opacity duration-200 ease-in-out ${
+                className={`absolute top-4 right-4 z-998 flex h-[calc(100vh-2rem)] w-[30rem] flex-col overflow-hidden rounded-2xl bg-gray-900/95 shadow-2xl backdrop-blur-md transition-opacity duration-200 ease-in-out ${
                     selectedCapture && detailVisible
                         ? "opacity-0 pointer-events-none"
                         : "opacity-100"
                 }`}
             >
-                <div className="p-5 flex flex-col gap-4">
-                    <div className="flex items-center gap-2">
-                        <Video size={20} className="text-blue-400" />
-                        <h2 className="text-base font-semibold text-white">
+                <div className="flex min-h-0 flex-1 flex-col gap-2 p-3">
+                    <div className="flex shrink-0 items-center gap-2">
+                        <Video size={18} className="text-blue-400" />
+                        <h2 className="text-sm font-semibold text-white">
                             Live Feed
                         </h2>
                     </div>
 
-                    <div>
-                        <p className="text-[10px] text-gray-500 uppercase mb-1">
-                            Camera
-                        </p>
-                        <div className="rounded-xl overflow-hidden bg-black aspect-video">
-                            <img
-                                src="https://stream.asphaltguard.online/video/camera"
-                                alt="Camera Feed"
-                                className="w-full h-full object-cover"
-                            />
+                    <div className="shrink-0 rounded-lg border border-gray-700/50 bg-gray-800/70 p-2.5">
+                        <div className="mb-1.5 flex items-center gap-2">
+                            <Road size={14} className="text-gray-400" />
+                            <p className="text-xs text-gray-400 uppercase font-medium">
+                                Asphalt Condition
+                            </p>
                         </div>
+                        {liveAsphaltCondition.color ? (
+                            <span
+                                className={`inline-block rounded-full px-2 py-0.5 text-xs font-bold uppercase text-white ${liveAsphaltCondition.color}`}
+                            >
+                                {liveAsphaltCondition.label}
+                            </span>
+                        ) : (
+                            <p className="text-base font-bold text-white">
+                                {liveAsphaltCondition.label}
+                            </p>
+                        )}
+                        <p className="mt-1.5 line-clamp-2 text-[10px] leading-snug text-gray-500">
+                            Analysis: {liveAsphaltCondition.analysis}
+                        </p>
                     </div>
 
-                    <div>
-                        <p className="text-[10px] text-gray-500 uppercase mb-1">
-                            Thermal Camera
-                        </p>
-                        <div className="rounded-xl overflow-hidden bg-black aspect-video">
-                            <img
-                                src="https://stream.asphaltguard.online/video/thermal"
-                                alt="Thermal Feed"
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2">
-                        <div className="rounded-lg bg-blue-950/50 border border-blue-800/30 p-2">
-                            <p className="text-[10px] text-blue-400 uppercase">
-                                Min Temp
+                    <div className="grid shrink-0 grid-cols-2 gap-2">
+                        <div className="rounded-lg border border-gray-700/50 bg-gray-800/70 p-2">
+                            <div className="mb-1 flex items-center gap-1.5">
+                                <Drone size={14} className="text-gray-400" />
+                                <p className="text-[10px] text-gray-400 uppercase font-medium">
+                                    Drone
+                                </p>
+                            </div>
+                            <p className="text-[10px] text-gray-500 uppercase">
+                                Temp Data
                             </p>
-                            <p className="text-sm font-bold text-blue-300">
-                                {thermalRaw
-                                    ? `${thermalRaw.min_c.toFixed(1)}°C`
-                                    : "—"}
-                            </p>
-                        </div>
-                        <div className="rounded-lg bg-red-950/50 border border-red-800/30 p-2">
-                            <p className="text-[10px] text-red-400 uppercase">
-                                Max Temp
-                            </p>
-                            <p className="text-sm font-bold text-red-300">
-                                {thermalRaw
-                                    ? `${thermalRaw.max_c.toFixed(1)}°C`
-                                    : "—"}
-                            </p>
-                        </div>
-                        <div className="rounded-lg bg-amber-950/50 border border-amber-800/30 p-2">
-                            <p className="text-[10px] text-amber-400 uppercase">
-                                Mean Temp
-                            </p>
-                            <p className="text-sm font-bold text-amber-300">
+                            <p className="text-base font-bold text-white">
                                 {thermalRaw
                                     ? `${thermalRaw.mean_c.toFixed(1)}°C`
                                     : "—"}
                             </p>
+                        </div>
+                        <div className="rounded-lg border border-gray-700/50 bg-gray-800/70 p-2">
+                            <div className="mb-1 flex items-center gap-1.5">
+                                <Car size={14} className="text-gray-400" />
+                                <p className="text-[10px] text-gray-400 uppercase font-medium">
+                                    RC Car
+                                </p>
+                            </div>
+                            <p className="text-[10px] text-gray-500 uppercase">
+                                Temp Data
+                            </p>
+                            <p className="text-base font-bold text-white">
+                                {rcCarLive?.temperature_c !== null &&
+                                rcCarLive?.temperature_c !== undefined
+                                    ? `${rcCarLive.temperature_c.toFixed(1)}°C`
+                                    : "—"}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex shrink-0 flex-col gap-2">
+                        <div>
+                            <p className="mb-0.5 text-[10px] text-gray-500 uppercase">
+                                Camera
+                            </p>
+                            <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
+                                <img
+                                    src="https://stream.asphaltguard.online/video/camera"
+                                    alt="Camera Feed"
+                                    className="h-full w-full object-cover"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <p className="mb-0.5 text-[10px] text-gray-500 uppercase">
+                                Thermal
+                            </p>
+                            <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
+                                <img
+                                    src="https://stream.asphaltguard.online/video/thermal"
+                                    alt="Thermal Feed"
+                                    className="h-full w-full object-cover"
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -391,50 +439,52 @@ export default function MapView() {
                             if (gpsLastValid) setFlyTarget(gpsLastValid);
                         }}
                         disabled={!gpsLastValid}
-                        className={`rounded-lg bg-gray-800/70 p-3 w-full text-left transition-all duration-150 ${
+                        className={`shrink-0 rounded-lg bg-gray-800/70 p-2 w-full text-left transition-all duration-150 ${
                             gpsLastValid
                                 ? "hover:bg-gray-700/70 hover:scale-[1.02] hover:shadow-lg hover:ring-1 hover:ring-gray-600/50 cursor-pointer active:scale-[0.98]"
                                 : "opacity-60"
                         }`}
                     >
-                        <div className="flex items-center gap-2 mb-2">
-                            <MapPin size={14} className="text-gray-400" />
-                            <p className="text-xs text-gray-400 uppercase font-medium">
-                                GPS Status
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <span
-                                className={`inline-block w-2 h-2 rounded-full ${
-                                    gpsData === null
-                                        ? "bg-red-400"
+                        <div className="mb-1.5 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-1.5">
+                                <MapPin size={14} className="text-gray-400" />
+                                <p className="text-[10px] text-gray-400 uppercase font-medium">
+                                    GPS Status
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span
+                                    className={`inline-block h-2 w-2 rounded-full ${
+                                        gpsData === null
+                                            ? "bg-red-400"
+                                            : gpsData.valid
+                                              ? "bg-emerald-400 animate-pulse"
+                                              : "bg-yellow-400 animate-pulse"
+                                    }`}
+                                />
+                                <span
+                                    className={`text-[10px] font-medium ${
+                                        gpsData === null
+                                            ? "text-red-400"
+                                            : gpsData.valid
+                                              ? "text-emerald-400"
+                                              : "text-yellow-400"
+                                    }`}
+                                >
+                                    {gpsData === null
+                                        ? "No Connection"
                                         : gpsData.valid
-                                          ? "bg-emerald-400 animate-pulse"
-                                          : "bg-yellow-400 animate-pulse"
-                                }`}
-                            />
-                            <span
-                                className={`text-xs font-medium ${
-                                    gpsData === null
-                                        ? "text-red-400"
-                                        : gpsData.valid
-                                          ? "text-emerald-400"
-                                          : "text-yellow-400"
-                                }`}
-                            >
-                                {gpsData === null
-                                    ? "No Connection"
-                                    : gpsData.valid
-                                      ? "GPS Fix Active"
-                                      : "No Fix"}
-                            </span>
+                                          ? "GPS Fix Active"
+                                          : "No Fix"}
+                                </span>
+                            </div>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                             <div>
                                 <p className="text-[10px] text-gray-500">
                                     Latitude
                                 </p>
-                                <p className="text-sm font-mono text-white">
+                                <p className="text-xs font-mono text-white">
                                     {gpsData?.valid
                                         ? gpsData.latitude.toFixed(6)
                                         : "—"}
@@ -444,7 +494,7 @@ export default function MapView() {
                                 <p className="text-[10px] text-gray-500">
                                     Longitude
                                 </p>
-                                <p className="text-sm font-mono text-white">
+                                <p className="text-xs font-mono text-white">
                                     {gpsData?.valid
                                         ? gpsData.longitude.toFixed(6)
                                         : "—"}
@@ -452,24 +502,6 @@ export default function MapView() {
                             </div>
                         </div>
                     </button>
-
-                    <div className="rounded-lg bg-gray-800/70 border border-gray-700/50 p-3">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Car size={14} className="text-gray-400" />
-                            <p className="text-xs text-gray-400 uppercase font-medium">
-                                RC Car
-                            </p>
-                        </div>
-                        <p className="text-[10px] text-gray-500 uppercase mb-1">
-                            Temp Data
-                        </p>
-                        <p className="text-lg font-bold text-white">
-                            {rcCarLive?.temperature_c !== null &&
-                            rcCarLive?.temperature_c !== undefined
-                                ? `${rcCarLive.temperature_c.toFixed(1)}°C`
-                                : "—"}
-                        </p>
-                    </div>
                 </div>
             </div>
 

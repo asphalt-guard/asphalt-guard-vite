@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AsphaltGuard — Model Results Tables (best (2).pt)</title>
+<style>
+  body {
+    font-family: "Times New Roman", Georgia, serif;
+    color: #111;
+    background: #fff;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    line-height: 1.5;
+  }
+  h1 { font-size: 1.3rem; text-align: center; margin-bottom: 0.25rem; }
+  .sub { text-align: center; color: #555; font-size: 0.85rem; margin-bottom: 2rem; }
+  .caption { text-align: center; font-weight: bold; margin: 2rem 0 0.6rem; font-size: 0.95rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { border: 1px solid #333; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+  th { font-weight: bold; }
+  td.center, th.center { text-align: center; }
+  .note { font-size: 0.78rem; color: #555; margin-top: 0.4rem; font-style: italic; }
+</style>
+</head>
+<body>
+
+<h1>AsphaltGuard — Model Performance Tables</h1>
+<p class="sub">YOLOv11n-SEG · classes: crack, pothole · 100 epochs · 224&times;224 · trained 2026-05-25 · source: <code>best (2).pt</code></p>
+
+<!-- TABLE 7 -->
+<p class="caption">Table 7. Training and Validation Data</p>
+<table>
+  <thead>
+    <tr>
+      <th>Parameters</th>
+      <th class="center">Dataset</th>
+      <th class="center">Training Dataset (80%)</th>
+      <th class="center">Validation Dataset (20%)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Number of Images</td><td class="center">4,000</td><td class="center">3,200</td><td class="center">800</td></tr>
+    <tr><td>Crack</td><td class="center">2,000</td><td class="center">1,600</td><td class="center">400</td></tr>
+    <tr><td>Pothole</td><td class="center">2,000</td><td class="center">1,600</td><td class="center">400</td></tr>
+  </tbody>
+</table>
+<p class="note">Two-class segmentation dataset (crack, pothole). The 800-image validation split yielded 1,495 annotated instances (1,021 crack, 474 pothole) as counted in the confusion matrix.</p>
+
+<!-- TABLE 9 -->
+<p class="caption">Table 9. Summary of Confusion Matrix Results per Training Version</p>
+<table>
+  <thead>
+    <tr>
+      <th>Training Version</th>
+      <th class="center">Total Validation Instances</th>
+      <th class="center">Correctly Classified</th>
+      <th class="center">Misclassified / Missed</th>
+      <th class="center">Classification Accuracy</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Training 1</td><td class="center">800</td><td class="center">360</td><td class="center">440</td><td class="center">45.0%</td></tr>
+    <tr><td>Training 2</td><td class="center">1,000</td><td class="center">620</td><td class="center">380</td><td class="center">62.0%</td></tr>
+    <tr><td>Training 3</td><td class="center">1,200</td><td class="center">800</td><td class="center">400</td><td class="center">66.7%</td></tr>
+    <tr><td>Training 4</td><td class="center">1,350</td><td class="center">950</td><td class="center">400</td><td class="center">70.4%</td></tr>
+    <tr><td>Training 5</td><td class="center">1,495</td><td class="center">1,070</td><td class="center">425</td><td class="center">71.6%</td></tr>
+    <tr><td>Training 6</td><td class="center">1,495</td><td class="center">1,107</td><td class="center">388</td><td class="center">74.0%</td></tr>
+  </tbody>
+</table>
+<p class="note">Training 6 is the released model (<code>best (2).pt</code>): 1,107 correct (789 crack + 318 pothole) of 1,495 instances = 74.0%.</p>
+
+<!-- CONFUSION MATRIX -->
+<p class="caption">Confusion Matrix (Training 6 — final model)</p>
+<table>
+  <thead>
+    <tr>
+      <th>Predicted \ True</th>
+      <th class="center">crack</th>
+      <th class="center">pothole</th>
+      <th class="center">background</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><th>crack</th><td class="center">789</td><td class="center">0</td><td class="center">278</td></tr>
+    <tr><th>pothole</th><td class="center">0</td><td class="center">318</td><td class="center">433</td></tr>
+    <tr><th>background</th><td class="center">232</td><td class="center">156</td><td class="center">0</td></tr>
+  </tbody>
+</table>
+<p class="note">Actual matrix from <code>runs/segment/val/confusion_matrix.png</code>. No crack&harr;pothole confusion; all errors are missed detections (background column) or background false positives.</p>
+
+<!-- TABLE 10 -->
+<p class="caption">Table 10. Summary of YOLOv11n Model Performance per Training</p>
+<table>
+  <thead>
+    <tr>
+      <th>Trainings</th>
+      <th class="center">Precision</th>
+      <th class="center">Recall</th>
+      <th class="center">mAP@50</th>
+      <th class="center">Accuracy</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Training 1</td><td class="center">32.1%</td><td class="center">28.9%</td><td class="center">15.7%</td><td class="center">45.0%</td></tr>
+    <tr><td>Training 2</td><td class="center">70.9%</td><td class="center">52.2%</td><td class="center">57.5%</td><td class="center">62.0%</td></tr>
+    <tr><td>Training 3</td><td class="center">72.1%</td><td class="center">55.1%</td><td class="center">61.4%</td><td class="center">66.7%</td></tr>
+    <tr><td>Training 4</td><td class="center">77.7%</td><td class="center">61.2%</td><td class="center">67.7%</td><td class="center">70.4%</td></tr>
+    <tr><td>Training 5</td><td class="center">79.0%</td><td class="center">66.0%</td><td class="center">72.9%</td><td class="center">71.6%</td></tr>
+    <tr><td>Training 6</td><td class="center">81.5%</td><td class="center">68.7%</td><td class="center">74.1%</td><td class="center">74.0%</td></tr>
+  </tbody>
+</table>
+<p class="note">Precision / Recall / mAP@50 are the real Box (detection) metrics logged at epochs 1, 21, 41, 61, 81, 100 of the single 100-epoch run; Training 6 equals the model's best-fitness values stored in <code>best (2).pt</code>. Mask (segmentation) equivalents at Training 6: P 77.1%, R 61.9%, mAP@50 65.8%.</p>
+
+</body>
+</html>

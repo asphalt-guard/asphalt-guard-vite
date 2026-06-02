@@ -3,6 +3,7 @@ import {
     LayoutDashboard,
     Map,
     Radio,
+    Thermometer,
     User,
     Users,
     Cpu,
@@ -67,6 +68,12 @@ function SideNavigation({
             label: "AI Models",
             icon: <Cpu size={20} />,
             path: "/ai-models",
+        },
+        {
+            id: "thermal-sensors",
+            label: "Thermal Sensors",
+            icon: <Thermometer size={20} />,
+            path: "/thermal-sensors",
         },
         {
             id: "history",
