@@ -46,7 +46,7 @@ export default function MapCaptureDetail({
                         Thermal View
                     </p>
                     <div className="overflow-hidden rounded-xl">
-                        <ThermalGrid grid={capture.thermal_grid} />
+                        <ThermalGrid grid={capture.thermal_grid} invert />
                     </div>
                 </div>
             )}

@@ -16,7 +16,7 @@ const INFERNO_STOPS: [number, number, number][] = [
     [252, 255, 164],
 ];
 
-const TEMP_MIN = 0;
+const TEMP_MIN = 30;
 const TEMP_MAX = 100;
 
 function inferno(t: number): string {
@@ -32,7 +32,13 @@ function inferno(t: number): string {
     return `rgb(${r},${g},${bl})`;
 }
 
-export default function ThermalGrid({ grid }: { grid: number[][] }) {
+export default function ThermalGrid({
+    grid,
+    invert = false,
+}: {
+    grid: number[][];
+    invert?: boolean;
+}) {
     const rows = grid.length;
     const cols = grid[0]?.length ?? 0;
 
@@ -47,24 +53,26 @@ export default function ThermalGrid({ grid }: { grid: number[][] }) {
             }}
         >
             {grid.flatMap((row, r) =>
-                row.map((val, c) => (
+                row.map((val, c) => {
+                    const normalized = Math.max(
+                        0,
+                        Math.min(
+                            1,
+                            (val - TEMP_MIN) / (TEMP_MAX - TEMP_MIN),
+                        ),
+                    );
+                    return (
                     <div
                         key={`${r}-${c}`}
                         title={`${val.toFixed(1)}°C`}
                         style={{
                             backgroundColor: inferno(
-                                Math.max(
-                                    0,
-                                    Math.min(
-                                        1,
-                                        (val - TEMP_MIN) /
-                                            (TEMP_MAX - TEMP_MIN),
-                                    ),
-                                ),
+                                invert ? 1 - normalized : normalized,
                             ),
                         }}
                     />
-                )),
+                    );
+                }),
             )}
         </div>
     );
