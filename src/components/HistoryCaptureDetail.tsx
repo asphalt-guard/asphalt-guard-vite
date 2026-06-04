@@ -1,9 +1,6 @@
-import { Car, ChevronLeft } from "lucide-react";
+import { Car, ChevronLeft, Drone } from "lucide-react";
 import type { CaptureRow } from "../lib/captureUtils";
-import {
-    formatPhilippineDateTime,
-    getRcCarTempC,
-} from "../lib/captureUtils";
+import { formatPhilippineDateTime } from "../lib/captureUtils";
 import ThermalGrid from "./ThermalGrid";
 
 type HistoryCaptureDetailProps = {
@@ -17,7 +14,7 @@ export default function HistoryCaptureDetail({
 }: HistoryCaptureDetailProps) {
     const hasCamera = Boolean(capture.image_url);
     const hasThermal = Boolean(capture.thermal_grid);
-    const rcCarTempC = getRcCarTempC(capture);
+    const rcCarTempC = capture.rccar_temperature_c;
 
     return (
         <div className="flex flex-col gap-4">
@@ -97,16 +94,39 @@ export default function HistoryCaptureDetail({
                 </div>
             </div>
 
-            <div className="rounded-lg border border-gray-700/50 bg-gray-800/70 p-3">
-                <div className="mb-1 flex items-center gap-1.5">
-                    <Car size={12} className="text-gray-400" aria-hidden />
-                    <p className="text-[10px] uppercase text-gray-400">
-                        RC Car Temp
+            <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-lg border border-gray-700/50 bg-gray-800/70 p-2">
+                    <div className="mb-1 flex items-center gap-1.5">
+                        <Drone size={14} className="text-gray-400" aria-hidden />
+                        <p className="text-[10px] font-medium uppercase text-gray-400">
+                            Drone
+                        </p>
+                    </div>
+                    <p className="text-[10px] uppercase text-gray-500">
+                        Temp Data
+                    </p>
+                    <p className="text-base font-bold text-white">
+                        {capture.thermal_mean_c !== null
+                            ? `${capture.thermal_mean_c.toFixed(1)}°C`
+                            : "—"}
                     </p>
                 </div>
-                <p className="text-lg font-bold text-white">
-                    {rcCarTempC !== null ? `${rcCarTempC.toFixed(1)}°C` : "—"}
-                </p>
+                <div className="rounded-lg border border-gray-700/50 bg-gray-800/70 p-2">
+                    <div className="mb-1 flex items-center gap-1.5">
+                        <Car size={14} className="text-gray-400" aria-hidden />
+                        <p className="text-[10px] font-medium uppercase text-gray-400">
+                            RC Car
+                        </p>
+                    </div>
+                    <p className="text-[10px] uppercase text-gray-500">
+                        Temp Data
+                    </p>
+                    <p className="text-base font-bold text-white">
+                        {rcCarTempC !== null
+                            ? `${rcCarTempC.toFixed(1)}°C`
+                            : "—"}
+                    </p>
+                </div>
             </div>
 
             <div className="space-y-1 rounded-lg bg-gray-800/70 p-3">

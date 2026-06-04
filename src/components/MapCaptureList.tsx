@@ -1,9 +1,9 @@
+import { Car, Drone } from "lucide-react";
 import type { CaptureRow } from "../lib/captureUtils";
 import {
     formatPhilippineDateTime,
     getCaptureTitleByTime,
     getConditionFromMaxTemp,
-    getRcCarTempC,
 } from "../lib/captureUtils";
 
 type MapCaptureListProps = {
@@ -26,9 +26,8 @@ export default function MapCaptureList({
     return (
         <div className="flex flex-col gap-2">
             {captures.map((cap) => {
-                const temp = getRcCarTempC(cap);
                 const { label: conditionLabel, color: conditionColor } =
-                    getConditionFromMaxTemp(temp);
+                    getConditionFromMaxTemp(cap.thermal_max_c);
 
                 return (
                     <button
@@ -37,7 +36,7 @@ export default function MapCaptureList({
                         onClick={() => onSelect(cap)}
                         className="cursor-pointer rounded-lg bg-gray-800/70 p-3 text-left transition-colors hover:bg-gray-700/70"
                     >
-                        <div className="mb-1 flex items-center justify-between">
+                        <div className="mb-2 flex items-center justify-between">
                             <p className="text-sm font-medium text-white">
                                 {getCaptureTitleByTime(cap.captured_at)}
                             </p>
@@ -47,14 +46,51 @@ export default function MapCaptureList({
                                 {conditionLabel}
                             </span>
                         </div>
-                        <div className="flex items-center justify-between text-xs text-gray-400">
-                            <span>
-                                {temp !== null ? `${temp.toFixed(1)}°C` : "—"}
-                            </span>
-                            <span>
-                                {formatPhilippineDateTime(cap.captured_at)}
-                            </span>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="rounded-lg border border-gray-700/50 bg-gray-800/70 p-2">
+                                <div className="mb-1 flex items-center gap-1.5">
+                                    <Drone
+                                        size={14}
+                                        className="text-gray-400"
+                                        aria-hidden
+                                    />
+                                    <p className="text-[10px] font-medium uppercase text-gray-400">
+                                        Drone
+                                    </p>
+                                </div>
+                                <p className="text-[10px] uppercase text-gray-500">
+                                    Temp Data
+                                </p>
+                                <p className="text-base font-bold text-white">
+                                    {cap.thermal_mean_c !== null
+                                        ? `${cap.thermal_mean_c.toFixed(1)}°C`
+                                        : "—"}
+                                </p>
+                            </div>
+                            <div className="rounded-lg border border-gray-700/50 bg-gray-800/70 p-2">
+                                <div className="mb-1 flex items-center gap-1.5">
+                                    <Car
+                                        size={14}
+                                        className="text-gray-400"
+                                        aria-hidden
+                                    />
+                                    <p className="text-[10px] font-medium uppercase text-gray-400">
+                                        RC Car
+                                    </p>
+                                </div>
+                                <p className="text-[10px] uppercase text-gray-500">
+                                    Temp Data
+                                </p>
+                                <p className="text-base font-bold text-white">
+                                    {cap.rccar_temperature_c !== null
+                                        ? `${cap.rccar_temperature_c.toFixed(1)}°C`
+                                        : "—"}
+                                </p>
+                            </div>
                         </div>
+                        <p className="mt-2 text-right text-xs text-gray-400">
+                            {formatPhilippineDateTime(cap.captured_at)}
+                        </p>
                         <p className="mt-1 text-[10px] text-gray-500">
                             {cap.gps_latitude.toFixed(6)},{" "}
                             {cap.gps_longitude.toFixed(6)}
