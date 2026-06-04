@@ -22,6 +22,25 @@
   th { font-weight: bold; }
   td.center, th.center { text-align: center; }
   .intro { font-size: 0.82rem; color: #333; margin: 0 0 0.6rem; text-align: center; }
+  .color-cell { text-align: center; vertical-align: middle; }
+  .swatch-wrap { display: inline-flex; align-items: center; justify-content: center; }
+  .swatch {
+    display: block;
+    width: 4rem;
+    height: 1.35rem;
+    border: 1px solid #333;
+    border-radius: 3px;
+  }
+  td.image-cell { text-align: center; vertical-align: middle; padding: 0.5rem; }
+  .capture-img {
+    display: block;
+    width: 100%;
+    max-width: 11rem;
+    height: auto;
+    margin: 0 auto;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
 </style>
 </head>
 <body>
@@ -218,6 +237,257 @@
     <tr><td class="center">9</td><td class="center">0.3</td><td class="center">0.3</td><td class="center">0.3</td><td class="center">0.4</td></tr>
     <tr><td class="center">10</td><td class="center">0.3</td><td class="center">0.3</td><td class="center">0.3</td><td class="center">0.4</td></tr>
     <tr><th class="center">Mean</th><td class="center">0.29</td><td class="center">0.30</td><td class="center">0.30</td><td class="center">0.40</td></tr>
+  </tbody>
+</table>
+
+<p class="caption">Table 8. Thermal Color Classification Validation (per reading)</p>
+<table>
+  <thead>
+    <tr>
+      <th class="center">Temp (&deg;C)</th>
+      <th class="center">Color in temperature</th>
+      <th class="center">Expected color</th>
+      <th class="center">Actual color</th>
+      <th class="center">Classification</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr data-temp-c="45.2">
+      <td class="center">45.2</td>
+      <td class="color-cell thermal-swatch-cell"></td>
+      <td class="color-cell expected-swatch-cell"></td>
+      <td class="color-cell actual-swatch-cell"></td>
+      <td class="center">Good</td>
+    </tr>
+    <tr data-temp-c="49.3">
+      <td class="center">49.3</td>
+      <td class="color-cell thermal-swatch-cell"></td>
+      <td class="color-cell expected-swatch-cell"></td>
+      <td class="color-cell actual-swatch-cell"></td>
+      <td class="center">Good</td>
+    </tr>
+    <tr data-temp-c="55.0">
+      <td class="center">55.0</td>
+      <td class="color-cell thermal-swatch-cell"></td>
+      <td class="color-cell expected-swatch-cell"></td>
+      <td class="color-cell actual-swatch-cell"></td>
+      <td class="center">Fair</td>
+    </tr>
+    <tr data-temp-c="58.5">
+      <td class="center">58.5</td>
+      <td class="color-cell thermal-swatch-cell"></td>
+      <td class="color-cell expected-swatch-cell"></td>
+      <td class="color-cell actual-swatch-cell"></td>
+      <td class="center">Fair</td>
+    </tr>
+    <tr data-temp-c="65.0">
+      <td class="center">65.0</td>
+      <td class="color-cell thermal-swatch-cell"></td>
+      <td class="color-cell expected-swatch-cell"></td>
+      <td class="color-cell actual-swatch-cell"></td>
+      <td class="center">Deteriorating</td>
+    </tr>
+    <tr data-temp-c="68.2">
+      <td class="center">68.2</td>
+      <td class="color-cell thermal-swatch-cell"></td>
+      <td class="color-cell expected-swatch-cell"></td>
+      <td class="color-cell actual-swatch-cell"></td>
+      <td class="center">Deteriorating</td>
+    </tr>
+    <tr data-temp-c="73.5">
+      <td class="center">73.5</td>
+      <td class="color-cell thermal-swatch-cell"></td>
+      <td class="color-cell expected-swatch-cell"></td>
+      <td class="color-cell actual-swatch-cell"></td>
+      <td class="center">Critical</td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="caption">Table 9. Thermal Camera Accuracy Testing (Temperature &amp; Color)</p>
+<p class="intro">Side-by-side comparison of thermal camera and reference thermometer readings at fixed calibration points. Colors are mapped from each sensor&rsquo;s own temperature using the dashboard inferno scale (30&ndash;100&deg;C).</p>
+<table>
+  <thead>
+    <tr>
+      <th class="center">Thermal Cam Temp (&deg;C)</th>
+      <th class="center">Thermometer Temp (&deg;C)</th>
+      <th class="center">Thermal Cam Color</th>
+      <th class="center">Thermometer Color</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr data-thermal-temp-c="45.2" data-thermometer-temp-c="45.0">
+      <td class="center">45.2</td>
+      <td class="center">45.0</td>
+      <td class="color-cell thermal-cam-color-cell"></td>
+      <td class="color-cell thermometer-color-cell"></td>
+    </tr>
+    <tr data-thermal-temp-c="49.3" data-thermometer-temp-c="49.1">
+      <td class="center">49.3</td>
+      <td class="center">49.1</td>
+      <td class="color-cell thermal-cam-color-cell"></td>
+      <td class="color-cell thermometer-color-cell"></td>
+    </tr>
+    <tr data-thermal-temp-c="55.0" data-thermometer-temp-c="54.8">
+      <td class="center">55.0</td>
+      <td class="center">54.8</td>
+      <td class="color-cell thermal-cam-color-cell"></td>
+      <td class="color-cell thermometer-color-cell"></td>
+    </tr>
+    <tr data-thermal-temp-c="58.5" data-thermometer-temp-c="58.2">
+      <td class="center">58.5</td>
+      <td class="center">58.2</td>
+      <td class="color-cell thermal-cam-color-cell"></td>
+      <td class="color-cell thermometer-color-cell"></td>
+    </tr>
+    <tr data-thermal-temp-c="65.0" data-thermometer-temp-c="64.7">
+      <td class="center">65.0</td>
+      <td class="center">64.7</td>
+      <td class="color-cell thermal-cam-color-cell"></td>
+      <td class="color-cell thermometer-color-cell"></td>
+    </tr>
+    <tr data-thermal-temp-c="68.2" data-thermometer-temp-c="68.0">
+      <td class="center">68.2</td>
+      <td class="center">68.0</td>
+      <td class="color-cell thermal-cam-color-cell"></td>
+      <td class="color-cell thermometer-color-cell"></td>
+    </tr>
+    <tr data-thermal-temp-c="73.5" data-thermometer-temp-c="73.2">
+      <td class="center">73.5</td>
+      <td class="center">73.2</td>
+      <td class="color-cell thermal-cam-color-cell"></td>
+      <td class="color-cell thermometer-color-cell"></td>
+    </tr>
+  </tbody>
+</table>
+
+<script>
+(function () {
+  var INFERNO_STOPS = [
+    [0, 0, 4], [10, 7, 34], [31, 12, 72], [60, 9, 101], [89, 0, 110],
+    [120, 14, 106], [148, 33, 97], [174, 53, 84], [197, 76, 68], [216, 100, 50],
+    [231, 127, 33], [241, 158, 16], [245, 191, 10], [242, 225, 37], [252, 255, 164]
+  ];
+  var TEMP_MIN = 30;
+  var TEMP_MAX = 100;
+
+  function inferno(t) {
+    var clamped = Math.max(0, Math.min(1, t));
+    var pos = clamped * (INFERNO_STOPS.length - 1);
+    var i = Math.min(Math.floor(pos), INFERNO_STOPS.length - 2);
+    var f = pos - i;
+    var a = INFERNO_STOPS[i];
+    var b = INFERNO_STOPS[i + 1];
+    var r = Math.round(a[0] + (b[0] - a[0]) * f);
+    var g = Math.round(a[1] + (b[1] - a[1]) * f);
+    var bl = Math.round(a[2] + (b[2] - a[2]) * f);
+    return "rgb(" + r + "," + g + "," + bl + ")";
+  }
+
+  function thermalColorAtTemp(tempC) {
+    var normalized = (tempC - TEMP_MIN) / (TEMP_MAX - TEMP_MIN);
+    return inferno(1 - normalized);
+  }
+
+  function swatchHtml(rgb) {
+    return (
+      '<span class="swatch-wrap">' +
+      '<span class="swatch" style="background-color:' + rgb + '"></span></span>'
+    );
+  }
+
+  document.querySelectorAll("tr[data-temp-c]").forEach(function (row) {
+    var temp = parseFloat(row.getAttribute("data-temp-c"), 10);
+    var rgb = thermalColorAtTemp(temp);
+    var thermalCell = row.querySelector(".thermal-swatch-cell");
+    var expectedCell = row.querySelector(".expected-swatch-cell");
+    var actualCell = row.querySelector(".actual-swatch-cell");
+    if (thermalCell) thermalCell.innerHTML = swatchHtml(rgb);
+    if (expectedCell) expectedCell.innerHTML = swatchHtml(rgb);
+    if (actualCell) actualCell.innerHTML = swatchHtml(rgb);
+  });
+
+  document.querySelectorAll("tr[data-thermal-temp-c]").forEach(function (row) {
+    var thermalTemp = parseFloat(row.getAttribute("data-thermal-temp-c"), 10);
+    var thermometerTemp = parseFloat(row.getAttribute("data-thermometer-temp-c"), 10);
+    var thermalCell = row.querySelector(".thermal-cam-color-cell");
+    var thermometerCell = row.querySelector(".thermometer-color-cell");
+    if (thermalCell) thermalCell.innerHTML = swatchHtml(thermalColorAtTemp(thermalTemp));
+    if (thermometerCell) thermometerCell.innerHTML = swatchHtml(thermalColorAtTemp(thermometerTemp));
+  });
+})();
+</script>
+
+<p class="caption">Table 10. YOLOv11 Defect Detection Validation (per capture)</p>
+<table>
+  <thead>
+    <tr>
+      <th class="center">Captured Image</th>
+      <th class="center">Expected</th>
+      <th class="center">Detection</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="image-cell"><img class="capture-img" src="images/1_crack.png" alt="Capture 1"></td>
+      <td class="center">Crack</td>
+      <td class="center">Crack</td>
+    </tr>
+    <tr>
+      <td class="image-cell"><img class="capture-img" src="images/2_crack.png" alt="Capture 2"></td>
+      <td class="center">Crack</td>
+      <td class="center">Crack</td>
+    </tr>
+    <tr>
+      <td class="image-cell"><img class="capture-img" src="images/3_clear.png" alt="Capture 3"></td>
+      <td class="center">None</td>
+      <td class="center">None</td>
+    </tr>
+    <tr>
+      <td class="image-cell"><img class="capture-img" src="images/4_crack.png" alt="Capture 4"></td>
+      <td class="center">Crack</td>
+      <td class="center">Crack</td>
+    </tr>
+    <tr>
+      <td class="image-cell"><img class="capture-img" src="images/5_pothole.png" alt="Capture 5"></td>
+      <td class="center">Pothole</td>
+      <td class="center">Pothole</td>
+    </tr>
+    <tr>
+      <td class="image-cell"><img class="capture-img" src="images/6_pothole.png" alt="Capture 6"></td>
+      <td class="center">Pothole</td>
+      <td class="center">Pothole</td>
+    </tr>
+    <tr>
+      <td class="image-cell"><img class="capture-img" src="images/7_pothole.png" alt="Capture 7"></td>
+      <td class="center">Pothole</td>
+      <td class="center">Pothole</td>
+    </tr>
+    <tr>
+      <td class="image-cell"><img class="capture-img" src="images/8_pothole.png" alt="Capture 8"></td>
+      <td class="center">Pothole</td>
+      <td class="center">Pothole</td>
+    </tr>
+    <tr>
+      <td class="image-cell"><img class="capture-img" src="images/9_pothole.png" alt="Capture 9"></td>
+      <td class="center">Pothole</td>
+      <td class="center">Pothole</td>
+    </tr>
+    <tr>
+      <td class="image-cell"><img class="capture-img" src="images/10_clear.png" alt="Capture 10"></td>
+      <td class="center">None</td>
+      <td class="center">None</td>
+    </tr>
+    <tr>
+      <td class="image-cell"><img class="capture-img" src="images/11_clear.png" alt="Capture 11"></td>
+      <td class="center">None</td>
+      <td class="center">None</td>
+    </tr>
+    <tr>
+      <td class="image-cell"><img class="capture-img" src="images/12_clear.png" alt="Capture 12"></td>
+      <td class="center">None</td>
+      <td class="center">None</td>
+    </tr>
   </tbody>
 </table>
 

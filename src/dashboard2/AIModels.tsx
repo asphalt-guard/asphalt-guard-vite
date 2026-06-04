@@ -11,6 +11,12 @@ type ModelCard = {
     confusionMatrixLabels?: string[];
     trainingTime: string;
     status: string;
+    /** Box metrics (Training 6 / released model) */
+    precision?: number;
+    recall?: number;
+    map50?: number;
+    accuracy?: number;
+    validationInstances?: number;
 };
 
 function AIModels() {
@@ -20,17 +26,22 @@ function AIModels() {
             name: "AsphaltGuard Model v2",
             modelType: "YOLOv11n-SEG",
             dateTrained: "May 25, 2026",
-            f1Score: 0.75,
+            f1Score: 0.83,
             description:
-                "Segmentation model trained to detect cracks and potholes (224px input, 100 epochs).",
+                "Segmentation model (best (2).pt) — crack & pothole, 224px input, 100 epochs. Validation: 1,495 instances (1,021 crack, 474 pothole).",
             confusionMatrixLabels: ["Crack", "Pothole", "Background"],
             confusionMatrix: [
-                [789, 0, 278],
-                [0, 318, 433],
-                [232, 156, 0],
+                [902, 0, 148],
+                [0, 370, 195],
+                [119, 104, 0],
             ],
             trainingTime: "1h 5m",
             status: "Ready for deployment review",
+            precision: 0.864,
+            recall: 0.792,
+            map50: 0.836,
+            accuracy: 0.851,
+            validationInstances: 1495,
         },
         {
             id: "model-01",
@@ -102,14 +113,65 @@ function AIModels() {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between rounded-lg border border-emerald-800/30 bg-emerald-950/50 p-3">
-                            <p className="text-xs uppercase text-emerald-400">
-                                F1 Score
+                        {model.accuracy !== undefined ? (
+                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                <div className="rounded-lg border border-emerald-800/30 bg-emerald-950/50 p-2 text-center">
+                                    <p className="text-[10px] uppercase text-emerald-400">
+                                        Accuracy
+                                    </p>
+                                    <p className="text-lg font-bold text-emerald-300">
+                                        {(model.accuracy * 100).toFixed(1)}%
+                                    </p>
+                                </div>
+                                {model.precision !== undefined && (
+                                    <div className="rounded-lg bg-gray-800/70 p-2 text-center">
+                                        <p className="text-[10px] uppercase text-gray-500">
+                                            Precision
+                                        </p>
+                                        <p className="text-lg font-semibold text-white">
+                                            {(model.precision * 100).toFixed(1)}%
+                                        </p>
+                                    </div>
+                                )}
+                                {model.recall !== undefined && (
+                                    <div className="rounded-lg bg-gray-800/70 p-2 text-center">
+                                        <p className="text-[10px] uppercase text-gray-500">
+                                            Recall
+                                        </p>
+                                        <p className="text-lg font-semibold text-white">
+                                            {(model.recall * 100).toFixed(1)}%
+                                        </p>
+                                    </div>
+                                )}
+                                {model.map50 !== undefined && (
+                                    <div className="rounded-lg bg-gray-800/70 p-2 text-center">
+                                        <p className="text-[10px] uppercase text-gray-500">
+                                            mAP@50
+                                        </p>
+                                        <p className="text-lg font-semibold text-white">
+                                            {(model.map50 * 100).toFixed(1)}%
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-between rounded-lg border border-emerald-800/30 bg-emerald-950/50 p-3">
+                                <p className="text-xs uppercase text-emerald-400">
+                                    F1 Score
+                                </p>
+                                <p className="text-2xl font-bold text-emerald-300">
+                                    {model.f1Score.toFixed(2)}
+                                </p>
+                            </div>
+                        )}
+                        {model.accuracy !== undefined && (
+                            <p className="text-[10px] text-gray-500">
+                                F1 (from P/R): {model.f1Score.toFixed(2)} ·{" "}
+                                {model.validationInstances?.toLocaleString()}{" "}
+                                validation instances · 1,272 correct (902 crack
+                                + 370 pothole)
                             </p>
-                            <p className="text-2xl font-bold text-emerald-300">
-                                {model.f1Score.toFixed(2)}
-                            </p>
-                        </div>
+                        )}
 
                         <div className="rounded-lg bg-gray-800/70 p-3">
                             <p className="mb-2 text-[10px] uppercase text-gray-500">

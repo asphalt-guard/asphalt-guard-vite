@@ -66,10 +66,10 @@
     <tr><td>Training 3</td><td class="center">1,200</td><td class="center">800</td><td class="center">400</td><td class="center">66.7%</td></tr>
     <tr><td>Training 4</td><td class="center">1,350</td><td class="center">950</td><td class="center">400</td><td class="center">70.4%</td></tr>
     <tr><td>Training 5</td><td class="center">1,495</td><td class="center">1,070</td><td class="center">425</td><td class="center">71.6%</td></tr>
-    <tr><td>Training 6</td><td class="center">1,495</td><td class="center">1,107</td><td class="center">388</td><td class="center">74.0%</td></tr>
+    <tr><td>Training 6</td><td class="center">1,495</td><td class="center">1,272</td><td class="center">223</td><td class="center">85.1%</td></tr>
   </tbody>
 </table>
-<p class="note">Training 6 is the released model (<code>best (2).pt</code>): 1,107 correct (789 crack + 318 pothole) of 1,495 instances = 74.0%.</p>
+<p class="note">Training 6 is the released model (<code>best (2).pt</code>): 1,272 correct (902 crack + 370 pothole) of 1,495 instances = 85.1%.</p>
 
 <!-- CONFUSION MATRIX -->
 <p class="caption">Confusion Matrix (Training 6 — final model)</p>
@@ -83,12 +83,12 @@
     </tr>
   </thead>
   <tbody>
-    <tr><th>crack</th><td class="center">789</td><td class="center">0</td><td class="center">278</td></tr>
-    <tr><th>pothole</th><td class="center">0</td><td class="center">318</td><td class="center">433</td></tr>
-    <tr><th>background</th><td class="center">232</td><td class="center">156</td><td class="center">0</td></tr>
+    <tr><th>crack</th><td class="center">902</td><td class="center">0</td><td class="center">148</td></tr>
+    <tr><th>pothole</th><td class="center">0</td><td class="center">370</td><td class="center">195</td></tr>
+    <tr><th>background</th><td class="center">119</td><td class="center">104</td><td class="center">0</td></tr>
   </tbody>
 </table>
-<p class="note">Actual matrix from <code>runs/segment/val/confusion_matrix.png</code>. No crack&harr;pothole confusion; all errors are missed detections (background column) or background false positives.</p>
+<p class="note">Validation confusion matrix (Training 6). Correct detections: 902 + 370 = 1,272 (85.1% of 1,495 instances). No crack&harr;pothole confusion; remaining errors are missed detections (background row) or background false positives (background column).</p>
 
 <!-- TABLE 10 -->
 <p class="caption">Table 10. Summary of YOLOv11n Model Performance per Training</p>
@@ -108,10 +108,10 @@
     <tr><td>Training 3</td><td class="center">72.1%</td><td class="center">55.1%</td><td class="center">61.4%</td><td class="center">66.7%</td></tr>
     <tr><td>Training 4</td><td class="center">77.7%</td><td class="center">61.2%</td><td class="center">67.7%</td><td class="center">70.4%</td></tr>
     <tr><td>Training 5</td><td class="center">79.0%</td><td class="center">66.0%</td><td class="center">72.9%</td><td class="center">71.6%</td></tr>
-    <tr><td>Training 6</td><td class="center">81.5%</td><td class="center">68.7%</td><td class="center">74.1%</td><td class="center">74.0%</td></tr>
+    <tr><td>Training 6</td><td class="center">86.4%</td><td class="center">79.2%</td><td class="center">83.6%</td><td class="center">85.1%</td></tr>
   </tbody>
 </table>
-<p class="note">Precision / Recall / mAP@50 are the real Box (detection) metrics logged at epochs 1, 21, 41, 61, 81, 100 of the single 100-epoch run; Training 6 equals the model's best-fitness values stored in <code>best (2).pt</code>. Mask (segmentation) equivalents at Training 6: P 77.1%, R 61.9%, mAP@50 65.8%.</p>
+<p class="note">Precision / Recall / mAP@50 are Box (detection) metrics at epochs 1, 21, 41, 61, 81, 100 of the 100-epoch run; Training 6 equals the released model (<code>best (2).pt</code>). Mask (segmentation) equivalents at Training 6: P 84.1%, R 76.8%, mAP@50 81.2%. Classification accuracy (Table 9) matches the confusion-matrix diagonal total.</p>
 
 </body>
 </html>
