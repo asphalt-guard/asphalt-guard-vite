@@ -2,9 +2,6 @@ export type CaptureRow = {
     id: number;
     gps_latitude: number;
     gps_longitude: number;
-    thermal_max_c: number | null;
-    thermal_min_c: number | null;
-    thermal_mean_c: number | null;
     thermal_ambient_c: number | null;
     thermal_grid: number[][] | null;
     image_url: string | null;
@@ -15,7 +12,7 @@ export type CaptureRow = {
 };
 
 export const CAPTURE_LIST_SELECT =
-    "id, gps_latitude, gps_longitude, thermal_max_c, thermal_min_c, thermal_mean_c, thermal_ambient_c, thermal_grid, image_url, yolo_crack, yolo_pothole, rccar_temperature_c, captured_at";
+    "id, gps_latitude, gps_longitude, thermal_ambient_c, thermal_grid, image_url, yolo_crack, yolo_pothole, rccar_temperature_c, captured_at";
 
 const PH_TIMEZONE = "Asia/Manila";
 
@@ -59,10 +56,7 @@ export function getConditionFromMaxTemp(temp: number | null): {
 }
 
 export function getRcCarTempC(capture: CaptureRow): number | null {
-    if (capture.rccar_temperature_c !== null) {
-        return capture.rccar_temperature_c;
-    }
-    return capture.thermal_mean_c;
+    return capture.rccar_temperature_c;
 }
 
 export type RccarLiveData = {

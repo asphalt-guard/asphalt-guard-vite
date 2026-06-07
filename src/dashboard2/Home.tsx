@@ -29,8 +29,8 @@ function DashboardLayout() {
         deteriorating: 0,
         critical: 0,
         latestTime: "N/A",
-        peakMaxTemp: null as number | null,
-        avgMaxTemp: null as number | null,
+        peakTemp: null as number | null,
+        avgTemp: null as number | null,
         thermalSamples: 0,
     });
 
@@ -69,9 +69,9 @@ function DashboardLayout() {
                         (cap.yolo_crack === true ? 1 : 0) +
                         (cap.yolo_pothole === true ? 1 : 0);
 
-                    if (typeof cap.thermal_max_c === "number") {
-                        thermalValues.push(cap.thermal_max_c);
-                        const bucket = classifyByMaxTemp(cap.thermal_max_c);
+                    if (typeof cap.thermal_ambient_c === "number") {
+                        thermalValues.push(cap.thermal_ambient_c);
+                        const bucket = classifyByMaxTemp(cap.thermal_ambient_c);
                         if (bucket === "good") good++;
                         else if (bucket === "fair") fair++;
                         else if (bucket === "deteriorating") deteriorating++;
@@ -83,11 +83,11 @@ function DashboardLayout() {
                     captures[0].captured_at,
                 );
 
-                const peakMaxTemp =
+                const peakTemp =
                     thermalValues.length > 0
                         ? Math.max(...thermalValues)
                         : null;
-                const avgMaxTemp =
+                const avgTemp =
                     thermalValues.length > 0
                         ? Math.round(
                               thermalValues.reduce((a, b) => a + b, 0) /
@@ -103,8 +103,8 @@ function DashboardLayout() {
                     deteriorating,
                     critical,
                     latestTime: formattedTime,
-                    peakMaxTemp,
-                    avgMaxTemp,
+                    peakTemp,
+                    avgTemp,
                     thermalSamples: thermalValues.length,
                 });
             } else {
@@ -116,8 +116,8 @@ function DashboardLayout() {
                     deteriorating: 0,
                     critical: 0,
                     latestTime: "N/A",
-                    peakMaxTemp: null,
-                    avgMaxTemp: null,
+                    peakTemp: null,
+                    avgTemp: null,
                     thermalSamples: 0,
                 });
             }
@@ -276,8 +276,8 @@ function DashboardLayout() {
                             Peak Surface Temp
                         </p>
                         <p className="text-sm font-bold text-orange-300">
-                            {stats.peakMaxTemp !== null
-                                ? `${stats.peakMaxTemp}°C`
+                            {stats.peakTemp !== null
+                                ? `${stats.peakTemp}°C`
                                 : "—"}
                         </p>
                     </div>
@@ -286,8 +286,8 @@ function DashboardLayout() {
                             Avg Surface Temp
                         </p>
                         <p className="text-sm font-bold text-amber-300">
-                            {stats.avgMaxTemp !== null
-                                ? `${stats.avgMaxTemp}°C`
+                            {stats.avgTemp !== null
+                                ? `${stats.avgTemp}°C`
                                 : "—"}
                         </p>
                     </div>

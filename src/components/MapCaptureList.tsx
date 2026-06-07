@@ -27,7 +27,7 @@ export default function MapCaptureList({
         <div className="flex flex-col gap-2">
             {captures.map((cap) => {
                 const { label: conditionLabel, color: conditionColor } =
-                    getConditionFromMaxTemp(cap.thermal_max_c);
+                    getConditionFromMaxTemp(cap.thermal_ambient_c);
 
                 return (
                     <button
@@ -62,8 +62,8 @@ export default function MapCaptureList({
                                     Temp Data
                                 </p>
                                 <p className="text-base font-bold text-white">
-                                    {cap.thermal_mean_c !== null
-                                        ? `${cap.thermal_mean_c.toFixed(1)}°C`
+                                    {cap.thermal_ambient_c !== null
+                                        ? `${cap.thermal_ambient_c.toFixed(1)}°C`
                                         : "—"}
                                 </p>
                             </div>

@@ -77,8 +77,8 @@ export default function HistoryCaptureDetail({
                         Temp Data
                     </p>
                     <p className="text-base font-bold text-white">
-                        {capture.thermal_mean_c !== null
-                            ? `${capture.thermal_mean_c.toFixed(1)}°C`
+                        {capture.thermal_ambient_c !== null
+                            ? `${capture.thermal_ambient_c.toFixed(1)}°C`
                             : "—"}
                     </p>
                 </div>
