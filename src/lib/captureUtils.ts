@@ -2,7 +2,7 @@ export type CaptureRow = {
     id: number;
     gps_latitude: number;
     gps_longitude: number;
-    thermal_ambient_c: number | null;
+    thermal_mean_c: number | null;
     thermal_grid: number[][] | null;
     image_url: string | null;
     yolo_crack: boolean | null;
@@ -12,7 +12,7 @@ export type CaptureRow = {
 };
 
 export const CAPTURE_LIST_SELECT =
-    "id, gps_latitude, gps_longitude, thermal_ambient_c, thermal_grid, image_url, yolo_crack, yolo_pothole, rccar_temperature_c, captured_at";
+    "id, gps_latitude, gps_longitude, thermal_mean_c, thermal_grid, image_url, yolo_crack, yolo_pothole, rccar_temperature_c, captured_at";
 
 const PH_TIMEZONE = "Asia/Manila";
 
@@ -53,6 +53,10 @@ export function getConditionFromMaxTemp(temp: number | null): {
     if (temp <= 60) return { label: "Fair", color: "bg-yellow-500" };
     if (temp <= 70) return { label: "Deteriorating", color: "bg-orange-500" };
     return { label: "Critical", color: "bg-red-500" };
+}
+
+export function getDroneTempC(capture: CaptureRow): number | null {
+    return capture.thermal_mean_c;
 }
 
 export function getRcCarTempC(capture: CaptureRow): number | null {

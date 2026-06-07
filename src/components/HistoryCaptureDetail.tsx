@@ -1,6 +1,9 @@
 import { Car, ChevronLeft, Drone } from "lucide-react";
 import type { CaptureRow } from "../lib/captureUtils";
-import { formatPhilippineDateTime } from "../lib/captureUtils";
+import {
+    formatPhilippineDateTime,
+    getDroneTempC,
+} from "../lib/captureUtils";
 import ThermalGrid from "./ThermalGrid";
 
 type HistoryCaptureDetailProps = {
@@ -14,6 +17,7 @@ export default function HistoryCaptureDetail({
 }: HistoryCaptureDetailProps) {
     const hasCamera = Boolean(capture.image_url);
     const hasThermal = Boolean(capture.thermal_grid);
+    const droneTempC = getDroneTempC(capture);
     const rcCarTempC = capture.rccar_temperature_c;
 
     return (
@@ -77,8 +81,8 @@ export default function HistoryCaptureDetail({
                         Temp Data
                     </p>
                     <p className="text-base font-bold text-white">
-                        {capture.thermal_ambient_c !== null
-                            ? `${capture.thermal_ambient_c.toFixed(1)}°C`
+                        {droneTempC !== null
+                            ? `${droneTempC.toFixed(1)}°C`
                             : "—"}
                     </p>
                 </div>

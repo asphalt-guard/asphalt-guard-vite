@@ -4,6 +4,7 @@ import {
     formatPhilippineDateTime,
     getCaptureTitleByTime,
     getConditionFromMaxTemp,
+    getDroneTempC,
 } from "../lib/captureUtils";
 
 type MapCaptureListProps = {
@@ -26,8 +27,9 @@ export default function MapCaptureList({
     return (
         <div className="flex flex-col gap-2">
             {captures.map((cap) => {
+                const droneTempC = getDroneTempC(cap);
                 const { label: conditionLabel, color: conditionColor } =
-                    getConditionFromMaxTemp(cap.thermal_ambient_c);
+                    getConditionFromMaxTemp(droneTempC);
 
                 return (
                     <button
@@ -62,8 +64,8 @@ export default function MapCaptureList({
                                     Temp Data
                                 </p>
                                 <p className="text-base font-bold text-white">
-                                    {cap.thermal_ambient_c !== null
-                                        ? `${cap.thermal_ambient_c.toFixed(1)}°C`
+                                    {droneTempC !== null
+                                        ? `${droneTempC.toFixed(1)}°C`
                                         : "—"}
                                 </p>
                             </div>

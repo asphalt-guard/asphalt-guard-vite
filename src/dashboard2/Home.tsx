@@ -3,6 +3,7 @@ import DashboardShell from "./DashboardShell";
 import {
     CAPTURE_LIST_SELECT,
     formatPhilippineDateTime,
+    getDroneTempC,
     type CaptureRow,
 } from "../lib/captureUtils";
 import { getUserByUID, supabase } from "../lib/supabase";
@@ -69,9 +70,10 @@ function DashboardLayout() {
                         (cap.yolo_crack === true ? 1 : 0) +
                         (cap.yolo_pothole === true ? 1 : 0);
 
-                    if (typeof cap.thermal_ambient_c === "number") {
-                        thermalValues.push(cap.thermal_ambient_c);
-                        const bucket = classifyByMaxTemp(cap.thermal_ambient_c);
+                    const droneTempC = getDroneTempC(cap);
+                    if (typeof droneTempC === "number") {
+                        thermalValues.push(droneTempC);
+                        const bucket = classifyByMaxTemp(droneTempC);
                         if (bucket === "good") good++;
                         else if (bucket === "fair") fair++;
                         else if (bucket === "deteriorating") deteriorating++;

@@ -8,6 +8,7 @@ import MapCaptureList from "../components/MapCaptureList";
 import {
     CAPTURE_LIST_SELECT,
     getConditionFromMaxTemp,
+    getDroneTempC,
     parseRccarLiveResponse,
     type CaptureRow,
     type RccarLiveData,
@@ -50,9 +51,10 @@ function getCaptureIcon(cap: CaptureRow) {
         return alertIcon;
     }
 
-    if (cap.thermal_ambient_c !== null) {
-        if (cap.thermal_ambient_c > 60) return alertIcon;
-        if (cap.thermal_ambient_c > 50) return fairIcon;
+    const droneTempC = getDroneTempC(cap);
+    if (droneTempC !== null) {
+        if (droneTempC > 60) return alertIcon;
+        if (droneTempC > 50) return fairIcon;
     }
 
     return goodIcon;
@@ -144,9 +146,7 @@ export default function MapView() {
     const [gpsLastValid, setGpsLastValid] = useState<[number, number] | null>(
         null,
     );
-    const [thermalAmbientC, setThermalAmbientC] = useState<number | null>(
-        null,
-    );
+    const [thermalMeanC, setThermalMeanC] = useState<number | null>(null);
     const [rcCarLive, setRcCarLive] = useState<RccarLiveData | null>(null);
 
     const openCaptureDetail = (cap: CaptureRow) => {
@@ -192,11 +192,17 @@ export default function MapView() {
                 );
                 if (!res.ok) throw new Error("fetch failed");
                 const data = await res.json();
-                if (active && !data.error && typeof data.ambient_c === "number") {
-                    setThermalAmbientC(data.ambient_c);
+                const meanC =
+                    typeof data.mean_c === "number"
+                        ? data.mean_c
+                        : typeof data.mean === "number"
+                          ? data.mean
+                          : null;
+                if (active && !data.error && meanC !== null) {
+                    setThermalMeanC(meanC);
                 }
             } catch {
-                if (active) setThermalAmbientC(null);
+                if (active) setThermalMeanC(null);
             }
         };
         const pollRccar = async () => {
@@ -239,18 +245,18 @@ export default function MapView() {
     }, []);
 
     const liveAsphaltCondition = (() => {
-        const ambientC = thermalAmbientC;
-        if (ambientC == null) {
+        const meanC = thermalMeanC;
+        if (meanC == null) {
             return { label: "-", color: null as string | null, analysis: "-" };
         }
-        const { label, color } = getConditionFromMaxTemp(ambientC);
-        const temp = ambientC.toFixed(1);
+        const { label, color } = getConditionFromMaxTemp(meanC);
+        const temp = meanC.toFixed(1);
         let analysis: string;
-        if (ambientC <= 50) {
+        if (meanC <= 50) {
             analysis = `At ${temp}°C, surface heat is within the good range (≤50°C), so the pavement shows minimal aging stress.`;
-        } else if (ambientC <= 60) {
+        } else if (meanC <= 60) {
             analysis = `At ${temp}°C, surface heat is in the fair range (51–60°C), so mild warming may be starting to age the asphalt.`;
-        } else if (ambientC <= 70) {
+        } else if (meanC <= 70) {
             analysis = `At ${temp}°C, surface heat is in the deteriorating range (61–70°C), so heat stress is accelerating pavement wear.`;
         } else {
             analysis = `At ${temp}°C, surface heat exceeds 70°C, so the pavement is under critical heat stress and needs attention.`;
@@ -383,8 +389,8 @@ export default function MapView() {
                                 Temp Data
                             </p>
                             <p className="text-base font-bold text-white">
-                                {thermalAmbientC !== null
-                                    ? `${thermalAmbientC.toFixed(1)}°C`
+                                {thermalMeanC !== null
+                                    ? `${thermalMeanC.toFixed(1)}°C`
                                     : "—"}
                             </p>
                         </div>
