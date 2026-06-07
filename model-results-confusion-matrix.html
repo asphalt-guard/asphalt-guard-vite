@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confusion Matrix — Training 6 (85%)</title>
+<style>
+  body {
+    font-family: "DejaVu Sans", Arial, sans-serif;
+    background: #fff;
+    margin: 0;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  .chart-wrap { max-width: 520px; width: 100%; }
+  svg { width: 100%; height: auto; display: block; }
+  .note {
+    max-width: 520px;
+    font-size: 0.82rem;
+    color: #444;
+    line-height: 1.5;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="chart-wrap">
+<svg viewBox="0 0 520 400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="520" height="400" fill="white"/>
+
+  <text x="260" y="24" font-size="14" font-weight="bold" fill="#000" text-anchor="middle">Confusion Matrix</text>
+
+  <!-- Heatmap: rows = predicted, cols = true -->
+  <g transform="translate(96,52)">
+    <!-- crack row -->
+    <rect x="0" y="0" width="92" height="92" fill="rgb(8,48,107)"/>
+    <text x="46" y="51" font-size="13" fill="#fff" text-anchor="middle">902</text>
+    <rect x="94" y="0" width="92" height="92" fill="#ffffff"/>
+    <rect x="188" y="0" width="92" height="92" fill="rgb(107,174,214)"/>
+    <text x="234" y="51" font-size="13" fill="#111" text-anchor="middle">148</text>
+
+    <!-- pothole row -->
+    <rect x="0" y="94" width="92" height="92" fill="#ffffff"/>
+    <rect x="94" y="94" width="92" height="92" fill="rgb(33,113,181)"/>
+    <text x="140" y="145" font-size="13" fill="#fff" text-anchor="middle">370</text>
+    <rect x="188" y="94" width="92" height="92" fill="rgb(66,146,198)"/>
+    <text x="234" y="145" font-size="13" fill="#fff" text-anchor="middle">195</text>
+
+    <!-- background row -->
+    <rect x="0" y="188" width="92" height="92" fill="rgb(158,202,225)"/>
+    <text x="46" y="239" font-size="13" fill="#111" text-anchor="middle">119</text>
+    <rect x="94" y="188" width="92" height="92" fill="rgb(198,219,239)"/>
+    <text x="140" y="239" font-size="13" fill="#111" text-anchor="middle">104</text>
+    <rect x="188" y="188" width="92" height="92" fill="#ffffff"/>
+
+    <!-- Y labels (predicted) -->
+    <text x="-10" y="51" font-size="11" fill="#000" text-anchor="end">crack</text>
+    <text x="-10" y="145" font-size="11" fill="#000" text-anchor="end">pothole</text>
+    <text x="-10" y="239" font-size="11" fill="#000" text-anchor="end">background</text>
+
+    <!-- X labels (true), rotated -->
+    <text x="46" y="314" font-size="11" fill="#000" text-anchor="middle" transform="rotate(90,46,314)">crack</text>
+    <text x="140" y="314" font-size="11" fill="#000" text-anchor="middle" transform="rotate(90,140,314)">pothole</text>
+    <text x="234" y="314" font-size="11" fill="#000" text-anchor="middle" transform="rotate(90,234,314)">background</text>
+
+    <text x="140" y="338" font-size="12" fill="#000" text-anchor="middle">True</text>
+    <text x="-72" y="140" font-size="12" fill="#000" text-anchor="middle" transform="rotate(-90,-72,140)">Predicted</text>
+  </g>
+
+  <!-- Color bar -->
+  <g transform="translate(368,52)">
+    <defs>
+      <linearGradient id="blues" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0%" stop-color="rgb(247,251,255)"/>
+        <stop offset="12.5%" stop-color="rgb(222,235,247)"/>
+        <stop offset="25%" stop-color="rgb(198,219,239)"/>
+        <stop offset="37.5%" stop-color="rgb(158,202,225)"/>
+        <stop offset="50%" stop-color="rgb(107,174,214)"/>
+        <stop offset="62.5%" stop-color="rgb(66,146,198)"/>
+        <stop offset="75%" stop-color="rgb(33,113,181)"/>
+        <stop offset="87.5%" stop-color="rgb(8,81,156)"/>
+        <stop offset="100%" stop-color="rgb(8,48,107)"/>
+      </linearGradient>
+    </defs>
+    <rect x="0" y="0" width="16" height="280" fill="url(#blues)"/>
+    <rect x="0" y="0" width="16" height="280" fill="none" stroke="#333" stroke-width="0.8"/>
+    <line x1="16" y1="280" x2="20" y2="280" stroke="#333" stroke-width="0.8"/>
+    <text x="24" y="284" font-size="10" fill="#000">0</text>
+    <line x1="16" y1="210" x2="20" y2="210" stroke="#333" stroke-width="0.8"/>
+    <text x="24" y="214" font-size="10" fill="#000">200</text>
+    <line x1="16" y1="140" x2="20" y2="140" stroke="#333" stroke-width="0.8"/>
+    <text x="24" y="144" font-size="10" fill="#000">400</text>
+    <line x1="16" y1="70" x2="20" y2="70" stroke="#333" stroke-width="0.8"/>
+    <text x="24" y="74" font-size="10" fill="#000">600</text>
+    <line x1="16" y1="0" x2="20" y2="0" stroke="#333" stroke-width="0.8"/>
+    <text x="24" y="4" font-size="10" fill="#000">800</text>
+  </g>
+</svg>
+</div>
+
+<p class="note">
+  Training 6 (<code>best (2).pt</code>) · YOLOv11n-SEG · 1,495 validation instances ·
+  1,272 correct (902 crack + 370 pothole) = 85.1% accuracy.
+  Source: confusion matrix in <code>model-results-tables.html</code>.
+</p>
+
+</body>
+</html>

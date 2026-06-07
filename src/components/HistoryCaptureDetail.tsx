@@ -65,35 +65,6 @@ export default function HistoryCaptureDetail({
                 </div>
             )}
 
-            <div className="grid grid-cols-3 gap-2">
-                <div className="rounded-lg border border-red-800/30 bg-red-950/50 p-2">
-                    <p className="text-[10px] uppercase text-red-400">Max Temp</p>
-                    <p className="text-sm font-bold text-red-300">
-                        {capture.thermal_max_c !== null
-                            ? `${capture.thermal_max_c}°C`
-                            : "—"}
-                    </p>
-                </div>
-                <div className="rounded-lg border border-blue-800/30 bg-blue-950/50 p-2">
-                    <p className="text-[10px] uppercase text-blue-400">Min Temp</p>
-                    <p className="text-sm font-bold text-blue-300">
-                        {capture.thermal_min_c !== null
-                            ? `${capture.thermal_min_c}°C`
-                            : "—"}
-                    </p>
-                </div>
-                <div className="rounded-lg border border-amber-800/30 bg-amber-950/50 p-2">
-                    <p className="text-[10px] uppercase text-amber-400">
-                        Mean Temp
-                    </p>
-                    <p className="text-sm font-bold text-amber-300">
-                        {capture.thermal_mean_c !== null
-                            ? `${capture.thermal_mean_c}°C`
-                            : "—"}
-                    </p>
-                </div>
-            </div>
-
             <div className="grid grid-cols-2 gap-2">
                 <div className="rounded-lg border border-gray-700/50 bg-gray-800/70 p-2">
                     <div className="mb-1 flex items-center gap-1.5">

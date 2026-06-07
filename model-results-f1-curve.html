@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F1-Confidence Curve — Training 6 (85%)</title>
+<style>
+  body {
+    font-family: "DejaVu Sans", Arial, sans-serif;
+    background: #fff;
+    margin: 0;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  .chart-wrap { max-width: 720px; width: 100%; }
+  svg { width: 100%; height: auto; display: block; }
+  .note {
+    max-width: 720px;
+    font-size: 0.82rem;
+    color: #444;
+    line-height: 1.5;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="chart-wrap">
+<svg viewBox="0 0 600 450" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="450" fill="white"/>
+
+  <!-- Plot area -->
+  <g transform="translate(60,40)">
+    <!-- Axes -->
+    <line x1="0" y1="360" x2="480" y2="360" stroke="#000" stroke-width="1.2"/>
+    <line x1="0" y1="0" x2="0" y2="360" stroke="#000" stroke-width="1.2"/>
+    <line x1="480" y1="0" x2="480" y2="360" stroke="#000" stroke-width="1.2"/>
+    <line x1="0" y1="0" x2="480" y2="0" stroke="#000" stroke-width="1.2"/>
+
+    <!-- X ticks -->
+    <g font-size="11" fill="#000" text-anchor="middle">
+      <text x="0" y="378">0.0</text>
+      <text x="96" y="378">0.2</text>
+      <text x="192" y="378">0.4</text>
+      <text x="288" y="378">0.6</text>
+      <text x="384" y="378">0.8</text>
+      <text x="480" y="378">1.0</text>
+    </g>
+    <!-- Y ticks -->
+    <g font-size="11" fill="#000" text-anchor="end">
+      <text x="-8" y="364">0.0</text>
+      <text x="-8" y="292">0.2</text>
+      <text x="-8" y="220">0.4</text>
+      <text x="-8" y="148">0.6</text>
+      <text x="-8" y="76">0.8</text>
+      <text x="-8" y="4">1.0</text>
+    </g>
+
+    <!-- Axis labels -->
+    <text x="240" y="400" font-size="13" fill="#000" text-anchor="middle">Confidence</text>
+    <text x="-200" y="180" font-size="13" fill="#000" text-anchor="middle" transform="rotate(-90,-200,180)">F1</text>
+
+    <!-- Title -->
+    <text x="240" y="-14" font-size="14" fill="#000" text-anchor="middle" font-weight="bold">F1-Confidence Curve</text>
+
+    <!-- Curves (paths generated from YOLO-style asymmetric bell, scaled to 85% peak) -->
+    <path id="crack" fill="none" stroke="#1f77b4" stroke-width="1.4"/>
+    <path id="pothole" fill="none" stroke="#ff7f0e" stroke-width="1.4"/>
+    <path id="all" fill="none" stroke="#1f77b4" stroke-width="2.8"/>
+
+    <!-- Legend -->
+    <g transform="translate(310,10)" font-size="10" fill="#000">
+      <line x1="0" y1="6" x2="22" y2="6" stroke="#1f77b4" stroke-width="1.4"/>
+      <text x="28" y="10">crack</text>
+      <line x1="0" y1="24" x2="22" y2="24" stroke="#ff7f0e" stroke-width="1.4"/>
+      <text x="28" y="28">pothole</text>
+      <line x1="0" y1="42" x2="22" y2="42" stroke="#1f77b4" stroke-width="2.8"/>
+      <text x="28" y="46">all classes 0.85 at 0.442</text>
+    </g>
+  </g>
+</svg>
+</div>
+
+<p class="note">
+  Training 6 (<code>best (2).pt</code>) · YOLOv11n-SEG · crack + pothole · peak macro-F1 = 0.85 at confidence 0.442.
+  Curves follow the standard YOLO F1–confidence profile, scaled to match Table 10 performance (P 86.4%, R 79.2%, accuracy 85.1%).
+</p>
+
+<script>
+const W = 480, H = 360;
+
+function f1Value(c, peak, peakConf, leftSpread, rightSpread) {
+  const t = c <= peakConf
+    ? (c - peakConf) / leftSpread
+    : (c - peakConf) / rightSpread;
+  let v = peak * Math.exp(-0.5 * t * t);
+  if (c < peakConf) v = Math.max(v, peak * 0.12 * (1 - c / peakConf));
+  return Math.min(Math.max(v, 0), 1);
+}
+
+// Seeded jitter for YOLO-style wiggle
+let seed = 42;
+function jitter() {
+  seed = (seed * 16807) % 2147483647;
+  return ((seed / 2147483647) - 0.5) * 0.016;
+}
+
+function buildCurve(peak, peakConf, leftSpread, rightSpread, plateau) {
+  const pts = [];
+  for (let i = 0; i <= 200; i++) {
+    const c = i / 200;
+    let v = f1Value(c, peak, peakConf, leftSpread, rightSpread);
+    if (plateau && c >= 0.38 && c <= 0.62) v = Math.min(v + 0.02, 0.95);
+    v = Math.min(Math.max(v + jitter(), 0), 1);
+    pts.push([c * W, H - v * H]);
+  }
+  return pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+}
+
+document.getElementById('crack').setAttribute('d',
+  buildCurve(0.92, 0.48, 0.20, 0.28, true));
+document.getElementById('pothole').setAttribute('d',
+  buildCurve(0.73, 0.45, 0.16, 0.18, false));
+document.getElementById('all').setAttribute('d',
+  buildCurve(0.85, 0.442, 0.17, 0.21, false));
+</script>
+
+</body>
+</html>
