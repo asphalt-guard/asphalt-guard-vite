@@ -1,52 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { Video, Wifi } from "lucide-react";
+import ThermalGrid from "../components/ThermalGrid";
 import DashboardShell from "./DashboardShell";
+import { parseThermalRawResponse } from "../lib/captureUtils";
 import { getUserByUID, supabase } from "../lib/supabase";
 
 type UsersRow = { username?: string | null };
 
 type FeedStatus = "loading" | "online" | "error";
 
-const feeds = [
-    {
-        id: "feed-1",
-        label: "Camera",
-        url: "https://stream.asphaltguard.online/video/camera",
-    },
-    {
-        id: "feed-2",
-        label: "Thermal Camera",
-        url: "https://stream.asphaltguard.online/video/thermal",
-    },
-];
+const CAMERA_FEED_URL = "https://stream.asphaltguard.online/video/camera";
+const THERMAL_RAW_URL =
+    "https://stream.asphaltguard.online/api/thermal/raw";
+const THERMAL_POLL_MS = 2000;
 
 const RETRY_DELAY_MS = 3000;
 
 function LiveFeed() {
     const [user, setUser] = useState<UsersRow | null>(null);
     const [loading, setLoading] = useState(true);
-    const [feedStatus, setFeedStatus] = useState<Record<string, FeedStatus>>(
-        () =>
-            feeds.reduce(
-                (acc, feed) => {
-                    acc[feed.id] = "loading";
-                    return acc;
-                },
-                {} as Record<string, FeedStatus>,
-            ),
-    );
-    const [feedReloadKey, setFeedReloadKey] = useState<Record<string, number>>(
-        () =>
-            feeds.reduce(
-                (acc, feed) => {
-                    acc[feed.id] = 0;
-                    return acc;
-                },
-                {} as Record<string, number>,
-            ),
-    );
+    const [cameraStatus, setCameraStatus] = useState<FeedStatus>("loading");
+    const [thermalStatus, setThermalStatus] = useState<FeedStatus>("loading");
+    const [thermalGrid, setThermalGrid] = useState<number[][] | null>(null);
+    const [cameraReloadKey, setCameraReloadKey] = useState(0);
 
-    const retryTimeoutsRef = useRef<Record<string, number>>({});
+    const cameraRetryRef = useRef<number | null>(null);
 
     useEffect(() => {
         const initLiveFeed = async () => {
@@ -72,47 +50,75 @@ function LiveFeed() {
     }, []);
 
     useEffect(() => {
-        const timers = retryTimeoutsRef.current;
+        let active = true;
+
+        const pollThermal = async () => {
+            try {
+                const res = await fetch(THERMAL_RAW_URL);
+                if (!res.ok) throw new Error("fetch failed");
+                const parsed = parseThermalRawResponse(await res.json());
+                if (!active) return;
+                if (parsed) {
+                    setThermalGrid(parsed.grid);
+                    setThermalStatus("online");
+                } else {
+                    setThermalGrid(null);
+                    setThermalStatus("error");
+                }
+            } catch {
+                if (!active) return;
+                setThermalGrid(null);
+                setThermalStatus("error");
+            }
+        };
+
+        pollThermal();
+        const interval = window.setInterval(pollThermal, THERMAL_POLL_MS);
         return () => {
-            Object.values(timers).forEach((id) => window.clearTimeout(id));
+            active = false;
+            window.clearInterval(interval);
         };
     }, []);
 
-    const clearRetry = (id: string) => {
-        const existing = retryTimeoutsRef.current[id];
-        if (existing) {
-            window.clearTimeout(existing);
-            delete retryTimeoutsRef.current[id];
+    useEffect(() => {
+        return () => {
+            if (cameraRetryRef.current) {
+                window.clearTimeout(cameraRetryRef.current);
+            }
+        };
+    }, []);
+
+    const clearCameraRetry = () => {
+        if (cameraRetryRef.current) {
+            window.clearTimeout(cameraRetryRef.current);
+            cameraRetryRef.current = null;
         }
     };
 
-    const scheduleRetry = (id: string) => {
-        clearRetry(id);
-        retryTimeoutsRef.current[id] = window.setTimeout(() => {
-            delete retryTimeoutsRef.current[id];
-            setFeedReloadKey((prev) => ({
-                ...prev,
-                [id]: (prev[id] ?? 0) + 1,
-            }));
-            setFeedStatus((prev) => ({ ...prev, [id]: "loading" }));
+    const scheduleCameraRetry = () => {
+        clearCameraRetry();
+        cameraRetryRef.current = window.setTimeout(() => {
+            cameraRetryRef.current = null;
+            setCameraReloadKey((prev) => prev + 1);
+            setCameraStatus("loading");
         }, RETRY_DELAY_MS);
     };
 
-    const handleImgLoad = (id: string) => {
-        clearRetry(id);
-        setFeedStatus((prev) =>
-            prev[id] === "online" ? prev : { ...prev, [id]: "online" },
-        );
+    const handleCameraLoad = () => {
+        clearCameraRetry();
+        setCameraStatus((prev) => (prev === "online" ? prev : "online"));
     };
 
-    const handleImgError = (id: string) => {
-        setFeedStatus((prev) =>
-            prev[id] === "error" ? prev : { ...prev, [id]: "error" },
-        );
-        scheduleRetry(id);
+    const handleCameraError = () => {
+        setCameraStatus((prev) => (prev === "error" ? prev : "error"));
+        scheduleCameraRetry();
     };
 
-    const anyOnline = Object.values(feedStatus).some((s) => s === "online");
+    const anyOnline = cameraStatus === "online" || thermalStatus === "online";
+    const cameraSrc =
+        cameraReloadKey > 0
+            ? `${CAMERA_FEED_URL}?_=${cameraReloadKey}`
+            : CAMERA_FEED_URL;
 
     return (
         <DashboardShell
@@ -148,83 +154,124 @@ function LiveFeed() {
                 </div>
 
                 <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-2">
-                    {feeds.map((feed) => {
-                        const status = feedStatus[feed.id];
-                        const reloadKey = feedReloadKey[feed.id] ?? 0;
-                        const streamSrc =
-                            reloadKey > 0
-                                ? `${feed.url}?_=${reloadKey}`
-                                : feed.url;
-
-                        return (
-                            <div
-                                key={feed.id}
-                                className="flex min-h-0 flex-col gap-2"
-                            >
-                                <p className="text-[10px] uppercase text-gray-500">
-                                    {feed.label}
-                                </p>
-                                <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-xl bg-black aspect-video">
-                                    <img
-                                        key={reloadKey}
-                                        src={streamSrc}
-                                        alt={feed.label}
-                                        onLoad={() => handleImgLoad(feed.id)}
-                                        onError={() => handleImgError(feed.id)}
-                                        className={`h-full w-full object-cover ${
-                                            status === "online"
-                                                ? "opacity-100"
-                                                : "opacity-0"
-                                        }`}
-                                    />
-                                    {status !== "online" && (
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            {status === "loading" ? (
-                                                <div className="text-center">
-                                                    <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-b-2 border-white" />
-                                                    <p className="text-sm text-gray-400">
-                                                        Connecting…
-                                                    </p>
-                                                </div>
-                                            ) : (
-                                                <div className="px-6 text-center">
-                                                    <Wifi
-                                                        size={32}
-                                                        className="mx-auto mb-2 text-gray-500"
-                                                    />
-                                                    <p className="text-sm text-gray-400">
-                                                        Stream offline
-                                                    </p>
-                                                    <p className="mt-1 text-xs text-gray-500">
-                                                        Retrying automatically…
-                                                    </p>
-                                                </div>
-                                            )}
+                    <div className="flex min-h-0 flex-col gap-2">
+                        <p className="text-[10px] uppercase text-gray-500">
+                            Camera
+                        </p>
+                        <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-xl bg-black aspect-video">
+                            <img
+                                key={cameraReloadKey}
+                                src={cameraSrc}
+                                alt="Camera"
+                                onLoad={handleCameraLoad}
+                                onError={handleCameraError}
+                                className={`h-full w-full object-cover ${
+                                    cameraStatus === "online"
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                }`}
+                            />
+                            {cameraStatus !== "online" && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    {cameraStatus === "loading" ? (
+                                        <div className="text-center">
+                                            <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-b-2 border-white" />
+                                            <p className="text-sm text-gray-400">
+                                                Connecting…
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="px-6 text-center">
+                                            <Wifi
+                                                size={32}
+                                                className="mx-auto mb-2 text-gray-500"
+                                            />
+                                            <p className="text-sm text-gray-400">
+                                                Stream offline
+                                            </p>
+                                            <p className="mt-1 text-xs text-gray-500">
+                                                Retrying automatically…
+                                            </p>
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex items-center gap-1.5">
-                                    <span
-                                        className={`h-2 w-2 rounded-full ${
-                                            status === "online"
-                                                ? "animate-pulse bg-emerald-400"
-                                                : status === "error"
-                                                  ? "bg-red-400"
-                                                  : "animate-pulse bg-yellow-400"
-                                        }`}
-                                        aria-hidden
-                                    />
-                                    <p className="text-xs text-gray-500">
-                                        {status === "online"
-                                            ? "Live"
-                                            : status === "error"
-                                              ? "Offline"
-                                              : "Connecting"}
-                                    </p>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <span
+                                className={`h-2 w-2 rounded-full ${
+                                    cameraStatus === "online"
+                                        ? "animate-pulse bg-emerald-400"
+                                        : cameraStatus === "error"
+                                          ? "bg-red-400"
+                                          : "animate-pulse bg-yellow-400"
+                                }`}
+                                aria-hidden
+                            />
+                            <p className="text-xs text-gray-500">
+                                {cameraStatus === "online"
+                                    ? "Live"
+                                    : cameraStatus === "error"
+                                      ? "Offline"
+                                      : "Connecting"}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex min-h-0 flex-col gap-2">
+                        <p className="text-[10px] uppercase text-gray-500">
+                            Thermal Camera
+                        </p>
+                        <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-xl bg-black aspect-video">
+                            {thermalGrid ? (
+                                <ThermalGrid grid={thermalGrid} invert />
+                            ) : null}
+                            {thermalStatus !== "online" && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    {thermalStatus === "loading" ? (
+                                        <div className="text-center">
+                                            <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-b-2 border-white" />
+                                            <p className="text-sm text-gray-400">
+                                                Connecting…
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="px-6 text-center">
+                                            <Wifi
+                                                size={32}
+                                                className="mx-auto mb-2 text-gray-500"
+                                            />
+                                            <p className="text-sm text-gray-400">
+                                                Stream offline
+                                            </p>
+                                            <p className="mt-1 text-xs text-gray-500">
+                                                Retrying automatically…
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                        );
-                    })}
+                            )}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <span
+                                className={`h-2 w-2 rounded-full ${
+                                    thermalStatus === "online"
+                                        ? "animate-pulse bg-emerald-400"
+                                        : thermalStatus === "error"
+                                          ? "bg-red-400"
+                                          : "animate-pulse bg-yellow-400"
+                                }`}
+                                aria-hidden
+                            />
+                            <p className="text-xs text-gray-500">
+                                {thermalStatus === "online"
+                                    ? "Live"
+                                    : thermalStatus === "error"
+                                      ? "Offline"
+                                      : "Connecting"}
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </DashboardShell>

@@ -71,6 +71,53 @@ export type RccarLiveData = {
     error_message: string | null;
 };
 
+export type ThermalLiveData = {
+    grid: number[][];
+    mean_c: number | null;
+};
+
+export function parseThermalRawResponse(data: unknown): ThermalLiveData | null {
+    if (!data || typeof data !== "object") return null;
+    const row = data as Record<string, unknown>;
+    if (row.error) return null;
+
+    const mean_c =
+        typeof row.mean_c === "number"
+            ? row.mean_c
+            : typeof row.mean === "number"
+              ? row.mean
+              : null;
+
+    const toGrid = (temps: unknown): number[][] | null => {
+        if (!Array.isArray(temps) || temps.length === 0) return null;
+        if (Array.isArray(temps[0])) {
+            return temps as number[][];
+        }
+        const width =
+            typeof row.width === "number" ? row.width : null;
+        const height =
+            typeof row.height === "number" ? row.height : null;
+        if (width && height && temps.length >= width * height) {
+            const flat = temps as number[];
+            return Array.from({ length: height }, (_, r) =>
+                flat.slice(r * width, (r + 1) * width),
+            );
+        }
+        return null;
+    };
+
+    const grid =
+        toGrid(row.temperatures) ??
+        toGrid(row.thermal_grid) ??
+        null;
+
+    if (!grid || grid.length === 0 || (grid[0]?.length ?? 0) === 0) {
+        return null;
+    }
+
+    return { grid, mean_c };
+}
+
 export function parseRccarLiveResponse(data: unknown): RccarLiveData | null {
     if (!data || typeof data !== "object") return null;
     const row = data as Record<string, unknown>;

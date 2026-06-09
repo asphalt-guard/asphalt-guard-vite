@@ -5,11 +5,13 @@ import L from "leaflet";
 import { Road, ChevronLeft, MapPin, Video, Car, Drone } from "lucide-react";
 import MapCaptureDetail from "../components/MapCaptureDetail";
 import MapCaptureList from "../components/MapCaptureList";
+import ThermalGrid from "../components/ThermalGrid";
 import {
     CAPTURE_LIST_SELECT,
     getConditionFromMaxTemp,
     getDroneTempC,
     parseRccarLiveResponse,
+    parseThermalRawResponse,
     type CaptureRow,
     type RccarLiveData,
 } from "../lib/captureUtils";
@@ -147,6 +149,7 @@ export default function MapView() {
         null,
     );
     const [thermalMeanC, setThermalMeanC] = useState<number | null>(null);
+    const [thermalGrid, setThermalGrid] = useState<number[][] | null>(null);
     const [rcCarLive, setRcCarLive] = useState<RccarLiveData | null>(null);
 
     const openCaptureDetail = (cap: CaptureRow) => {
@@ -191,18 +194,16 @@ export default function MapView() {
                     "https://stream.asphaltguard.online/api/thermal/raw",
                 );
                 if (!res.ok) throw new Error("fetch failed");
-                const data = await res.json();
-                const meanC =
-                    typeof data.mean_c === "number"
-                        ? data.mean_c
-                        : typeof data.mean === "number"
-                          ? data.mean
-                          : null;
-                if (active && !data.error && meanC !== null) {
-                    setThermalMeanC(meanC);
+                const parsed = parseThermalRawResponse(await res.json());
+                if (active && parsed) {
+                    setThermalGrid(parsed.grid);
+                    setThermalMeanC(parsed.mean_c);
                 }
             } catch {
-                if (active) setThermalMeanC(null);
+                if (active) {
+                    setThermalGrid(null);
+                    setThermalMeanC(null);
+                }
             }
         };
         const pollRccar = async () => {
@@ -430,12 +431,14 @@ export default function MapView() {
                             <p className="mb-0.5 text-[10px] text-gray-500 uppercase">
                                 Thermal
                             </p>
-                            <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
-                                <img
-                                    src="https://stream.asphaltguard.online/video/thermal"
-                                    alt="Thermal Feed"
-                                    className="h-full w-full object-cover"
-                                />
+                            <div className="w-full overflow-hidden rounded-lg bg-black">
+                                {thermalGrid ? (
+                                    <ThermalGrid grid={thermalGrid} invert />
+                                ) : (
+                                    <div className="flex aspect-video items-center justify-center text-xs text-gray-500">
+                                        No thermal data
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
